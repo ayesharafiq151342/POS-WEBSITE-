@@ -1,8 +1,16 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #e9e7e7;
+  --foreground: #171717;  ;  /* Tailwind text */
+  --primary: #6366F1 ;
+  --accent: #8B5CF6 ac8bf1; 
+  --card: #FFFFFF;
+  --border: #E0E7FF;
+  --hover: #ac8bf1; 
+  --bg_white: #FFFFFF;
+
+
 }
 
 @theme inline {
@@ -14,10 +22,12 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: #e9e7e7; /* same as light mode */
+    --foreground: #171717;
   }
 }
+
+
 
 body {
   background: var(--background);
