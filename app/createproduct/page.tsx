@@ -1,7 +1,8 @@
 "use client";
 import { useState } from "react";
 import Sidebar from "../components/sidebar/page";
-
+import { Pencil, Trash } from "lucide-react";
+import TestPopup from "./testpop";
 export default function CreateProduct() {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
   const [showPopup, setShowPopup] = useState(false);
@@ -43,7 +44,10 @@ export default function CreateProduct() {
     "Shoe",
     "Cosmetic"
   ]);
-
+const editVariantRow = (index: number) => {
+    // Logic to edit variant row can be implemented here
+    alert(`Edit functionality for row ${index + 1} is not implemented yet.`);
+  }
   const addNewItem = () => {
     if (newItem.trim() === "") return;
     setOptions([...options, newItem]);
@@ -314,7 +318,7 @@ export default function CreateProduct() {
               type="button"
               onClick={() => setMode("single")}
               className={`px-4 py-2 rounded-md font-semibold ${mode === "single"
-                  ? "bg-blue-600 text-white"
+                  ? "bg-purple-400 text-white"
                   : "bg-gray-200 text-gray-700 hover:bg-gray-300"
                 }`}
             >
@@ -324,7 +328,7 @@ export default function CreateProduct() {
               type="button"
               onClick={() => setMode("multiple")}
               className={`px-4 py-2 rounded-md font-semibold ${mode === "multiple"
-                  ? "bg-blue-600 text-white"
+                  ? "bg-purple-400 text-white"
                   : "bg-gray-200 text-gray-700 hover:bg-gray-300"
                 }`}
             >
@@ -502,13 +506,23 @@ export default function CreateProduct() {
                             />
                           </td>
                           <td className="border px-2 py-1 text-center">
-                            <button
-                              type="button"
-                              onClick={() => removeVariantRow(index)}
-                              className="text-red-600 hover:text-red-800 font-bold"
-                            >
-                              -
-                            </button>
+                          <div className="flex gap-3">
+  
+<div className="flex gap-3">
+  {/* Edit Button */}
+  <TestPopup/>
+
+  {/* Delete Button */}
+  <button
+    type="button"
+    onClick={() => removeVariantRow(index)}
+    className="text-red-600 hover:text-red-800"
+  >
+    <Trash size={18} />
+  </button>
+</div>
+</div>
+
                           </td>
                         </tr>
                       ))}
@@ -517,7 +531,7 @@ export default function CreateProduct() {
                   <button
                     type="button"
                     onClick={addVariantRow}
-                    className="mt-3 px-3 py-1 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                    className="mt-3 px-3 py-1 bg-purple-400 text-white rounded-md hover:bg-[var(--hover)] transition"
                   >
                     + Add Variant
                   </button>
@@ -540,7 +554,7 @@ export default function CreateProduct() {
           <div key={index} className="border-b border-gray-200">
             <button
               onClick={() => toggleAccordion(index)}
-              className="w-full flex bg-[var(--accent)] text-white justify-between items-center py-5 px-3 text-slate-800 hover:bg-[var(--hover)] transition"
+              className="w-full flex bg-[var(--accent)] text-black justify-between items-center py-5 px-3 text-slate-800 hover:bg-[var(--hover)] transition"
             >
               <span>{item.title}</span>
               <span className="transition-transform duration-300">
