@@ -3,6 +3,8 @@ import { useState } from "react";
 import Sidebar from "../components/sidebar/page";
 import { Pencil, Trash } from "lucide-react";
 import TestPopup from "./testpop";
+import ImageUpload from "./imageupload";
+import WarrantySectionDropdown from "./Custom_Fields";
 export default function CreateProduct() {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
   const [showPopup, setShowPopup] = useState(false);
@@ -11,15 +13,23 @@ export default function CreateProduct() {
   const [barcode, setBarcode] = useState("");
   const [slug, setSlug] = useState("");
   const [mode, setMode] = useState<"single" | "multiple">("single");
-  const [variants, setVariants] = useState([
-    { attribute: "color", value: "", sku: "", quantity: 0, price: 0 },
-  ]);
-
+  const [variants, setVariants] = useState<Variant[]>([]);
+  const [submit, setSubmit] = useState(false);
+  const [cancel, setCancel] = useState(false);
   const generateBarcodeFromName = (name: string): string => {
     const slug = name.toLowerCase().trim().replace(/ /g, "-");
     const random = Math.floor(10000 + Math.random() * 90000); // 5-digit random number
     return `${slug}-${random}`;
   };
+  
+  type Variant = {
+    attribute: string;
+    value: string;
+    sku: string;
+    quantity: number;
+    price: number;
+  };
+
 
   const toggleAccordion = (index: number) => {
     setOpenIndex(openIndex === index ? null : index);
@@ -44,7 +54,7 @@ export default function CreateProduct() {
     "Shoe",
     "Cosmetic"
   ]);
-const editVariantRow = (index: number) => {
+  const editVariantRow = (index: number) => {
     // Logic to edit variant row can be implemented here
     alert(`Edit functionality for row ${index + 1} is not implemented yet.`);
   }
@@ -74,7 +84,7 @@ const editVariantRow = (index: number) => {
 
   const handleVariantChange = (
     index: number,
-    field: string,
+    field: keyof Variant,
     value: string | number
   ) => {
     const newVariants = [...variants];
@@ -82,6 +92,14 @@ const editVariantRow = (index: number) => {
     setVariants(newVariants);
   };
 
+  const handleSubmit = () => {
+    setSubmit(true);
+    console.log("Submitted!", submit); // note: state update is async
+  };
+    const handleCancel = () => {
+    setCancel(true);
+    console.log("Cancel clicked"); // state update async, ye just confirmation
+  };
   const accordionItems = [
     {
       title: "Product Information",
@@ -263,11 +281,7 @@ const editVariantRow = (index: number) => {
             />
           </div>
 
-          <input
-            type="submit"
-            value="Submit Product"
-            className="bg-green-600 text-white px-5 py-2 rounded-md cursor-pointer hover:bg-green-700 transition"
-          />
+       
 
           {/* Add Category Popup */}
           {showPopup && (
@@ -318,8 +332,8 @@ const editVariantRow = (index: number) => {
               type="button"
               onClick={() => setMode("single")}
               className={`px-4 py-2 rounded-md font-semibold ${mode === "single"
-                  ? "bg-purple-400 text-white"
-                  : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                ? "bg-[var(--accent)] text-white"
+                : "bg-gray-200 text-gray-700 hover:bg-gray-300"
                 }`}
             >
               Single Product
@@ -328,233 +342,244 @@ const editVariantRow = (index: number) => {
               type="button"
               onClick={() => setMode("multiple")}
               className={`px-4 py-2 rounded-md font-semibold ${mode === "multiple"
-                  ? "bg-purple-400 text-white"
-                  : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                ? "bg-[var(--accent)] text-white"
+                : "bg-gray-200 text-gray-700 hover:bg-gray-300"
                 }`}
             >
               Multiple Variants
             </button>
           </div>
-{/* Single Product Form */}
-{mode === "single" && (
-  <div className="mt-4">
-    {/* Row 1: Product Type & Quantity */}
-    <div className="flex flex-wrap gap-3">
-      <div className="flex-1">
-        <label className="block font-medium mb-1">Product Type*</label>
-        <select className="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
-          <option value="">Select Product Type</option>
-          <option>Physical</option>
-          <option>Digital</option>
-          <option>Service</option>
-        </select>
-      </div>
-
-      <div className="flex-1">
-        <label className="block font-medium mb-1">Quantity*</label>
-        <input
-          type="number"
-          min={0}
-          className="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
-      </div>
-    </div>
-
-    {/* Row 2: Price, Tax Type & Tax */}
-    <div className="flex flex-wrap gap-3 mt-3">
-      <div className="flex-1">
-        <label className="block font-medium mb-1">Price*</label>
-        <input
-          type="number"
-          min={0}
-          step={0.01}
-          className="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
-      </div>
-
-      <div className="flex-1">
-        <label className="block font-medium mb-1">Tax Type*</label>
-        <select className="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500" required>
-          <option value="">Select Tax Type</option>
-          <option>Percentage</option>
-          <option>Fixed</option>
-        </select>
-      </div>
-
-      <div className="flex-1">
-        <label className="block font-medium mb-1">Tax*</label>
-        <input
-          type="number"
-          min={0}
-          step={0.01}
-          placeholder="Enter Tax"
-          className="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          required
-        />
-      </div>
-    </div>
-
-    {/* Row 3: Discount Type, Discount Value & Quantity Alert */}
-    <div className="flex flex-wrap gap-3 mt-3">
-      <div className="flex-1">
-        <label className="block font-medium mb-1">Discount Type*</label>
-        <select className="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500" required>
-          <option value="">Select Discount Type</option>
-          <option>Percentage</option>
-          <option>Fixed</option>
-        </select>
-      </div>
-
-      <div className="flex-1">
-        <label className="block font-medium mb-1">Discount Value*</label>
-        <input
-          type="number"
-          min={0}
-          step={0.01}
-          placeholder="Enter Discount"
-          className="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          required
-        />
-      </div>
-
-      <div className="flex-1">
-        <label className="block font-medium mb-1">Quantity Alert*</label>
-        <input
-          type="number"
-          min={0}
-          placeholder="Enter Quantity Alert"
-          className="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          required
-        />
-      </div>
-    </div>
-  </div>
-)}
-
-              {/* Multiple Variants Table */}
-              {mode === "multiple" && (
-                <div>
-                  <h2 className="text-lg font-semibold mb-4">Variant Attributes*</h2>
-                  <table className="w-full border border-gray-300 rounded-md">
-                    <thead className="bg-gray-100">
-                      <tr>
-                        <th className="border px-2 py-1">Variant</th>
-                        <th className="border px-2 py-1">Variant Value</th>
-                        <th className="border px-2 py-1">SKU</th>
-                        <th className="border px-2 py-1">Quantity</th>
-                        <th className="border px-2 py-1">Price</th>
-                        <th className="border px-2 py-1">Action</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {variants.map((variant, index) => (
-                        <tr key={index}>
-                          <td className="border px-2 py-1">
-                            <select
-                              value={variant.attribute}
-                              onChange={(e) =>
-                                handleVariantChange(index, "attribute", e.target.value)
-                              }
-                              className="w-full border rounded-md p-1"
-                            >
-                              <option value="color">Color</option>
-                              <option value="size">Size</option>
-                              <option value="material">Material</option>
-                            </select>
-                          </td>
-                          <td className="border px-2 py-1">
-                            <input
-                              type="text"
-                              value={variant.value}
-                              onChange={(e) =>
-                                handleVariantChange(index, "value", e.target.value)
-                              }
-                              className="w-full border rounded-md p-1"
-                            />
-                          </td>
-                          <td className="border px-2 py-1">
-                            <input
-                              type="text"
-                              value={variant.sku}
-                              onChange={(e) =>
-                                handleVariantChange(index, "sku", e.target.value)
-                              }
-                              className="w-full border rounded-md p-1"
-                            />
-                          </td>
-                          <td className="border px-2 py-1">
-                            <input
-                              type="number"
-                              min={0}
-                              value={variant.quantity}
-                              onChange={(e) =>
-                                handleVariantChange(index, "quantity", Number(e.target.value))
-                              }
-                              className="w-full border rounded-md p-1"
-                            />
-                          </td>
-                          <td className="border px-2 py-1">
-                            <input
-                              type="number"
-                              min={0}
-                              step={0.01}
-                              value={variant.price}
-                              onChange={(e) =>
-                                handleVariantChange(index, "price", Number(e.target.value))
-                              }
-                              className="w-full border rounded-md p-1"
-                            />
-                          </td>
-                          <td className="border px-2 py-1 text-center">
-                          <div className="flex gap-3">
-  
-<div className="flex gap-3">
-  {/* Edit Button */}
-  <TestPopup/>
-
-  {/* Delete Button */}
-  <button
-    type="button"
-    onClick={() => removeVariantRow(index)}
-    className="text-red-600 hover:text-red-800"
-  >
-    <Trash size={18} />
-  </button>
-</div>
-</div>
-
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                  <button
-                    type="button"
-                    onClick={addVariantRow}
-                    className="mt-3 px-3 py-1 bg-purple-400 text-white rounded-md hover:bg-[var(--hover)] transition"
-                  >
-                    + Add Variant
-                  </button>
+          {/* Single Product Form */}
+          {mode === "single" && (
+            <div className="mt-4">
+              {/* Row 1: Product Type & Quantity */}
+              <div className="flex flex-wrap gap-3">
+                <div className="flex-1">
+                  <label className="block font-medium mb-1">Product Type*</label>
+                  <select className="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <option value="">Select Product Type</option>
+                    <option>Physical</option>
+                    <option>Digital</option>
+                    <option>Service</option>
+                  </select>
                 </div>
-              )}
+
+                <div className="flex-1">
+                  <label className="block font-medium mb-1">Quantity*</label>
+                  <input
+                    type="number"
+                    min={0}
+                    className="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+              </div>
+
+              {/* Row 2: Price, Tax Type & Tax */}
+              <div className="flex flex-wrap gap-3 mt-3">
+                <div className="flex-1">
+                  <label className="block font-medium mb-1">Price*</label>
+                  <input
+                    type="number"
+                    min={0}
+                    step={0.01}
+                    className="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+
+                <div className="flex-1">
+                  <label className="block font-medium mb-1">Tax Type*</label>
+                  <select className="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                    <option value="">Select Tax Type</option>
+                    <option>Percentage</option>
+                    <option>Fixed</option>
+                  </select>
+                </div>
+
+                <div className="flex-1">
+                  <label className="block font-medium mb-1">Tax*</label>
+                  <input
+                    type="number"
+                    min={0}
+                    step={0.01}
+                    placeholder="Enter Tax"
+                    className="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    required
+                  />
+                </div>
+              </div>
+
+              {/* Row 3: Discount Type, Discount Value & Quantity Alert */}
+              <div className="flex flex-wrap gap-3 mt-3">
+                <div className="flex-1">
+                  <label className="block font-medium mb-1">Discount Type*</label>
+                  <select className="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                    <option value="">Select Discount Type</option>
+                    <option>Percentage</option>
+                    <option>Fixed</option>
+                  </select>
+                </div>
+
+                <div className="flex-1">
+                  <label className="block font-medium mb-1">Discount Value*</label>
+                  <input
+                    type="number"
+                    min={0}
+                    step={0.01}
+                    placeholder="Enter Discount"
+                    className="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    required
+                  />
+                </div>
+
+                <div className="flex-1">
+                  <label className="block font-medium mb-1">Quantity Alert*</label>
+                  <input
+                    type="number"
+                    min={0}
+                    placeholder="Enter Quantity Alert"
+                    className="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    required
+                  />
+                </div>
+              </div>
             </div>
-  </form>
+          )}
+
+          {/* Multiple Variants Table */}
+          {mode === "multiple" && (
+            <div>
+              <h2 className="text-lg font-semibold mb-4">Variant Attributes*</h2>
+              <table className="w-full   rounded-md">
+                <thead className="bg-[var(--accent)] text-white">
+                  <tr>
+                    <th className="  px-2 py-1">Variant</th>
+                    <th className=" px-2 py-1">Variant Value</th>
+                    <th className=" px-2 py-1">SKU</th>
+                    <th className=" px-2 py-1">Quantity</th>
+                    <th className=" px-2 py-1">Price</th>
+                    <th className=" px-2 py-1">Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {variants.map((variant, index) => (
+                    <tr key={index}>
+                      <td className="px-2 py-1">
+                        <select
+                          value={variant.attribute}
+                          onChange={(e) =>
+                            handleVariantChange(index, "attribute", e.target.value)
+                          }
+                          className="w-full  outline rounded focus:ring-0 p-1 bg-white"
+                        >
+                          <option value="color">Color</option>
+                          <option value="size">Size</option>
+                          <option value="material">Material</option>
+                        </select>
+                      </td>
+
+                      <td className="px-2 py-1">
+                        <input
+                          type="text"
+                          value={variant.value}
+                          onChange={(e) =>
+                            handleVariantChange(index, "value", e.target.value)
+                          }
+                          className="w-full  outline rounded focus:ring-0 p-1 bg-white"
+                        />
+                      </td>
+
+                      <td className="px-2 py-1">
+                        <input
+                          type="text"
+                          value={variant.sku}
+                          onChange={(e) =>
+                            handleVariantChange(index, "sku", e.target.value)
+                          }
+                          className="w-full  outline rounded focus:ring-0 p-1 bg-white"
+                        />
+                      </td>
+
+                      <td className="px-2 py-1">
+                        <input
+                          type="number"
+                          min={0}
+                          value={variant.quantity}
+                          onChange={(e) =>
+                            handleVariantChange(index, "quantity", Number(e.target.value))
+                          }
+                          className="w-full  outline rounded focus:ring-0 p-1 bg-white"
+                        />
+                      </td>
+
+                      <td className="px-2 py-1">
+                        <input
+                          type="number"
+                          min={0}
+                          step={0.01}
+                          value={variant.price}
+                          onChange={(e) =>
+                            handleVariantChange(index, "price", Number(e.target.value))
+                          }
+                          className="w-full outline rounded focus:ring-0 p-1 bg-white"
+                        />
+                      </td>
+
+                      <td className=" px-2 py-1  outline rounded text-center">
+                        <div className="flex gap-3">
+
+                          <div className="flex gap-3">
+                            {/* Edit Button */}
+                            <TestPopup />
+
+                            {/* Delete Button */}
+                            <button
+                              type="button"
+                              onClick={() => removeVariantRow(index)}
+                              className="text-red-600 hover:text-red-800"
+                            >
+                              <Trash size={18} />
+                            </button>
+                          </div>
+                        </div>
+
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              <button
+                type="button"
+                onClick={addVariantRow}
+                className="mt-3 px-3 py-1 bg-[var(--accent)] text-white rounded-md hover:bg-[var(--hover)] transition"
+              >
+                + Add Variant
+              </button>
+            </div>
+          )}
+        </div>
+      </form>
     },
     {
-      title: "What can I do with Material Tailwind?",
-      content: "Material Tailwind allows you to quickly build modern, responsive websites with a focus on design."
+      title: "Images",
+      content: (<>
+   <ImageUpload/>   </>),
+    },    {
+      title: "Custom Fields",
+      content: 
+<WarrantySectionDropdown />
+
     }
   ];
 
   return (
     <Sidebar>
-      <h1 className="text-3xl font-bold mb-4 bg-green-200 p-3 rounded">Welcome to Create Product</h1>
-      <div className="bg-white w-full rounded-md shadow">
+      <h1 className="text-3xl font-bold mb-4 bg-[var(--accent)] text-white p-3 rounded">Welcome to Create Product</h1>
+      <div className="bg-white  w-full rounded-md shadow">
         {accordionItems.map((item, index) => (
           <div key={index} className="border-b border-gray-200">
             <button
               onClick={() => toggleAccordion(index)}
-              className="w-full flex bg-[var(--accent)] text-black justify-between items-center py-5 px-3 text-slate-800 hover:bg-[var(--hover)] transition"
+              className="w-full flex font-bold text-black  justify-between items-center py-5 px-3 text-slate-800  transition"
             >
               <span>{item.title}</span>
               <span className="transition-transform duration-300">
@@ -567,6 +592,21 @@ const editVariantRow = (index: number) => {
           </div>
         ))}
       </div>
+        <button
+      type="button"
+      onClick={handleSubmit}
+      className="bg-[var(--accent)] hover:bg-[var(--hover)] text-white rounded w-32 h-10 mt-5 transition-colors"
+    >
+      Submit
+    </button>
+          <button
+      type="button"
+      onClick={handleCancel}
+      className="bg-[var(--danger)] hover:bg-[var(--hover_danger)] text-white rounded w-32 h-10 mt-5 ml-4 "
+    >
+      Cancel
+    </button>
+
     </Sidebar>
   );
 }

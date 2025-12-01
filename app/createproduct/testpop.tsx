@@ -3,12 +3,16 @@ import { Pencil  ,Upload, X } from "lucide-react";
 export default function TestPopup() {
 
   const [edit_btn, setEdit_btn] = useState(false);
- const [image, setImage] = useState(null);
+const [image, setImage] = useState<string | null>(null);
 
-  const handleImage = (e) => {
-    const file = e.target.files[0];
-    if (file) setImage(URL.createObjectURL(file));
-  };
+
+ const handleImage = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const file = e.target.files?.[0];
+  if (file) {
+    setImage(URL.createObjectURL(file));
+  }
+};
+
   return (
     <div className="p-0">
 
@@ -26,9 +30,9 @@ export default function TestPopup() {
 
       {/* POPUP */}
       {edit_btn && (
-        <div className="fixed inset-0 bg-transpatent bg-opacity-50 flex w-full items-center justify-center z-50">
-          <div className="bg-white p-6 rounded-lg shadow-lg lg:w-72">
-         <div className="p-6 bg-white rounded-xl shadow-md max-w-64 mx-auto">
+        <div className="fixed inset-0 bg-transpatent bg-opacity-50 flex  items-center justify-center z-50">
+          <div className=" p-6 rounded-lg shadow-lg lg:w-96 bg-white">
+         <div className="p-6 bg-white rounded-xl shadow-md max-w-96 mx-auto">
       {/* Header */}
       <div className="flex justify-between w-full items-center mb-5">
         <h2 className="text-xl font-semibold text-gray-800">Add Variant</h2>
@@ -53,7 +57,7 @@ export default function TestPopup() {
         <input type="file" onChange={handleImage} className="hidden" id="thumb" />
         <label
           htmlFor="thumb"
-          className="cursor-pointer px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700"
+          className="cursor-pointer px-4 py-2 bg-[var(--accent)] text-white rounded-md hover:bg-[var(--hover)]"
         >
           Add Image
         </label>
@@ -66,7 +70,7 @@ export default function TestPopup() {
         {/* Barcode */}
         <div>
           <label className="block font-medium mb-1">Barcode Symbology*</label>
-          <select className="w-full border rounded-md p-2">
+          <select className="w-full border rounded-md p-2"  required>
             <option>Select Type</option>
             <option>EAN-13</option>
             <option>UPC-A</option>
@@ -80,26 +84,26 @@ export default function TestPopup() {
           <input
             type="text"
             className="w-full border rounded-md p-2"
-            placeholder="Enter item code"
+            placeholder="Enter item code" required
           />
         </div>
 
         {/* Quantity */}
         <div>
-          <label className="block font-medium mb-1">Quantity*</label>
-          <input type="number" className="w-full border rounded-md p-2" />
+          <label    className="block font-medium mb-1" >Quantity*</label>
+          <input  required type="number" className="w-full border rounded-md p-2" />
         </div>
 
         {/* Quantity Alert */}
         <div>
           <label className="block font-medium mb-1">Quantity Alert*</label>
-          <input type="number" className="w-full border rounded-md p-2" />
+          <input  required type="number" className="w-full border rounded-md p-2" />
         </div>
 
         {/* Tax Type */}
         <div>
           <label className="block font-medium mb-1">Tax Type*</label>
-          <select className="w-full border rounded-md p-2">
+          <select className="w-full border rounded-md p-2"  required>
             <option>Select</option>
             <option>Inclusive</option>
             <option>Exclusive</option>
@@ -109,13 +113,13 @@ export default function TestPopup() {
         {/* Tax */}
         <div>
           <label className="block font-medium mb-1">Tax*</label>
-          <input type="number" className="w-full border rounded-md p-2" />
+          <input type="number"  required className="w-full border rounded-md p-2" />
         </div>
 
         {/* Discount Type */}
         <div>
           <label className="block font-medium mb-1">Discount Type*</label>
-          <select className="w-full border rounded-md p-2">
+          <select className="w-full border rounded-md p-2" required>
             <option>Select</option>
             <option>Percentage</option>
             <option>Fixed</option>
@@ -125,17 +129,17 @@ export default function TestPopup() {
         {/* Discount Value */}
         <div>
           <label className="block font-medium mb-1">Discount Value*</label>
-          <input type="number" className="w-full border rounded-md p-2" />
+          <input   required type="number" className="w-full border rounded-md p-2" />
         </div>
 
       </div>
 
       {/* Submit */}
-      <button className="mt-6 w-full bg-purple-600 text-white py-2 rounded-lg hover:bg-purple-700">
+      <button className="mt-6 w-full bg-[var(--accent)] text-white py-2 rounded-lg hover:bg-[var(--hover)]">
         Save Variant
       </button>
     </div>
-            <div className="flex justify-end gap-3">
+            <div className="flex mt-6 justify-end gap-3">
               <button
                 onClick={() => setEdit_btn(false)}
                 className="px-3 py-1 bg-gray-300 rounded"
