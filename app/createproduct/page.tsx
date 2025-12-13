@@ -3,8 +3,10 @@ import { useState } from "react";
 import Sidebar from "../components/sidebar/page";
 import { Pencil, Trash } from "lucide-react";
 import TestPopup from "./testpop";
-import ImageUpload from "./imageupload";
-import WarrantySectionDropdown from "./Custom_Fields";
+ // child import
+
+ import ImageUpload , {ImageUploadData } from "./imageupload";
+import WarrantySectionWithLabels ,{Warranty} from "./Custom_Fields";
 export default function CreateProduct() {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
   const [showPopup, setShowPopup] = useState(false);
@@ -21,7 +23,9 @@ export default function CreateProduct() {
     const random = Math.floor(10000 + Math.random() * 90000); // 5-digit random number
     return `${slug}-${random}`;
   };
-  
+  const [images, setImages] = useState<File[]>([]); // child data store
+
+  const [warrantyData, setWarrantyData] = useState<Warranty | null>(null);
   type Variant = {
     attribute: string;
     value: string;
@@ -92,10 +96,54 @@ export default function CreateProduct() {
     setVariants(newVariants);
   };
 
-  const handleSubmit = () => {
-    setSubmit(true);
-    console.log("Submitted!", submit); // note: state update is async
-  };
+ const handleSubmit = async () => {
+  setSubmit(true);
+  console.log("Submitting warranty data:", warrantyData);
+
+  if (!warrantyData) {
+    alert("Please fill warranty data first!");
+    return;
+  }
+
+  // 1️⃣ Save warranty data
+  try {
+    const resWarranty = await fetch("/api/warranty", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(warrantyData),
+    });
+    if (!resWarranty.ok) throw new Error("Failed to save warranty data");
+    alert("Warranty data saved successfully!");
+  } catch (err) {
+    console.error(err);
+    alert("Error saving warranty!");
+    return; // stop if warranty save fails
+  }
+
+  // 2️⃣ Upload images (agar koi images hain)
+  if (images.length > 0) {
+    const formData = new FormData();
+    images.forEach((img) => formData.append("images", img));
+
+    try {
+      const resImages = await fetch("/api/upload", {
+        method: "POST",
+        body: formData,
+      });
+      if (!resImages.ok) throw new Error("Upload failed");
+      alert("Images uploaded successfully!");
+      setImages([]); // reset images
+    } catch (err) {
+      console.error(err);
+      alert("Upload error!");
+    }
+  } else {
+    console.log("No images to upload");
+  }
+
+  console.log("Submitted!");
+};
+
     const handleCancel = () => {
     setCancel(true);
     console.log("Cancel clicked"); // state update async, ye just confirmation
@@ -562,12 +610,11 @@ export default function CreateProduct() {
     {
       title: "Images",
       content: (<>
-   <ImageUpload/>   </>),
+  <ImageUpload onChange={setImages} images={images} />   </>),
     },    {
       title: "Custom Fields",
       content: 
-<WarrantySectionDropdown />
-
+  <WarrantySectionWithLabels onChange={setWarrantyData} />
     }
   ];
 
