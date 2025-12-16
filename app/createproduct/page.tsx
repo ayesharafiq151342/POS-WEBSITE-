@@ -9,7 +9,7 @@ import TestPopup from "./testpop";
 import WarrantySectionWithLabels ,{Warranty} from "./Custom_Fields";
 export default function CreateProduct() {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
-  const [showPopup, setShowPopup] = useState(false);
+ 
   const [newItem, setNewItem] = useState("");
   const [productName, setProductName] = useState("");
   const [barcode, setBarcode] = useState("");
@@ -33,6 +33,17 @@ export default function CreateProduct() {
     quantity: number;
     price: number;
   };
+  const [options, setOptions] = useState<string[]>(["Computer", "Electronics"]);
+  const [showPopup, setShowPopup] = useState(false);
+  const [newCategory, setNewCategory] = useState("");
+
+  const handleAddCategory = () => {
+    if (newCategory && !options.includes(newCategory)) {
+      setOptions([...options, newCategory]); // category add ho jayegi
+      setNewCategory("");
+      setShowPopup(false);
+    }
+  };
 
 
   const toggleAccordion = (index: number) => {
@@ -52,12 +63,7 @@ export default function CreateProduct() {
     </svg>
   );
 
-  const [options, setOptions] = useState([
-    "Computer",
-    "Electronics",
-    "Shoe",
-    "Cosmetic"
-  ]);
+  
   const editVariantRow = (index: number) => {
     // Logic to edit variant row can be implemented here
     alert(`Edit functionality for row ${index + 1} is not implemented yet.`);
