@@ -35,12 +35,30 @@ export default function CreateProduct() {
   };
   const [options, setOptions] = useState<string[]>(["Computer", "Electronics"]);
   const [showPopup, setShowPopup] = useState(false);
-  const [newCategory, setNewCategory] = useState("");
+  const [store, setStore] = useState("");
+  const [warehouse, setWarehouse] = useState("");
+  const [sku, setSku] = useState("");
+  const [sellingType, setSellingType] = useState("");
+  const [category, setCategory] = useState("");
+  const [subcategory, setSubcategory] = useState("");
+  const [brand, setBrand] = useState("");
+  const [unit, setUnit] = useState("");
+  const [barcodeSymbology, setBarcodeSymbology] = useState("Code 128");
+  const [description, setDescription] = useState("");
+  const [productType, setProductType] = useState("");
+  const [quantity, setQuantity] = useState(0);
+  const [price, setPrice] = useState(0);
+  const [taxType, setTaxType] = useState("");
+  const [tax, setTax] = useState(0);
+  const [discountType, setDiscountType] = useState("");
+  const [discountValue, setDiscountValue] = useState(0);
+  const [quantityAlert, setQuantityAlert] = useState(0);
 
   const handleAddCategory = () => {
-    if (newCategory && !options.includes(newCategory)) {
-      setOptions([...options, newCategory]); // category add ho jayegi
-      setNewCategory("");
+    if (newItem && !options.includes(newItem)) {
+      setOptions([...options, newItem]);
+      setCategory(newItem.toLowerCase());
+      setNewItem("");
       setShowPopup(false);
     }
   };
@@ -68,12 +86,7 @@ export default function CreateProduct() {
     // Logic to edit variant row can be implemented here
     alert(`Edit functionality for row ${index + 1} is not implemented yet.`);
   }
-  const addNewItem = () => {
-    if (newItem.trim() === "") return;
-    setOptions([...options, newItem]);
-    setNewItem("");
-    setShowPopup(false);
-  };
+
 
   const handleProductNameChange = (name: string) => {
     setProductName(name);
@@ -98,7 +111,11 @@ export default function CreateProduct() {
     value: string | number
   ) => {
     const newVariants = [...variants];
-    newVariants[index][field] = value;
+    if (field === 'quantity' || field === 'price') {
+      newVariants[index][field] = value as number;
+    } else {
+      newVariants[index][field] = value as string;
+    }
     setVariants(newVariants);
   };
 
@@ -111,43 +128,87 @@ export default function CreateProduct() {
     return;
   }
 
-  // 1️⃣ Save warranty data
-  try {
-    const resWarranty = await fetch("/api/warranty", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(warrantyData),
-    });
-    if (!resWarranty.ok) throw new Error("Failed to save warranty data");
-    alert("Warranty data saved successfully!");
-  } catch (err) {
-    console.error(err);
-    alert("Error saving warranty!");
-    return; // stop if warranty save fails
-  }
+  let imageUrls: string[] = [];
 
-  // 2️⃣ Upload images (agar koi images hain)
+  // 1️⃣ Upload images first
   if (images.length > 0) {
     const formData = new FormData();
     images.forEach((img) => formData.append("images", img));
 
     try {
-      const resImages = await fetch("/api/upload", {
+      const resImages = await fetch("http://localhost:3000/upload", {
         method: "POST",
         body: formData,
       });
       if (!resImages.ok) throw new Error("Upload failed");
+      const data = await resImages.json();
+      imageUrls = data.urls || [];
       alert("Images uploaded successfully!");
-      setImages([]); // reset images
+      setImages([]);
     } catch (err) {
       console.error(err);
       alert("Upload error!");
+      return;
     }
-  } else {
-    console.log("No images to upload");
   }
 
-  console.log("Submitted!");
+  // 2️⃣ Save warranty data
+  // try {
+  //   const resWarranty = await fetch("http://localhost:3000/warranty", {
+  //     method: "POST",
+  //     headers: { "Content-Type": "application/json" },
+  //     body: JSON.stringify(warrantyData),
+  //   });
+  //   if (!resWarranty.ok) throw new Error("Failed to save warranty data");
+  //   alert("Warranty data saved successfully!");
+  // } catch (err) {
+  //   console.error(err);
+  //   alert("Error saving warranty!");
+  //   return;
+  // }
+
+  // 3️⃣ Collect product data
+  const productData = {
+    productName,
+    slug,
+    barcode,
+    store,
+    warehouse,
+    sku,
+    sellingType,
+    category,
+    subcategory,
+    brand,
+    unit,
+    barcodeSymbology,
+    description,
+    productType,
+    quantity,
+    price,
+    taxType,
+    tax,
+    discountType,
+    discountValue,
+    quantityAlert,
+    images: imageUrls,
+    warranty: warrantyData,
+    mode,
+    variants: mode === 'multiple' ? variants : [],
+  };
+
+  // 4️⃣ Send to /api/products
+  try {
+    const resProduct = await fetch("http://localhost:3000/products", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(productData),
+    });
+    if (!resProduct.ok) throw new Error("Failed to save product");
+    alert("Product saved successfully!");
+  } catch (err) {
+    console.error(err);
+    alert("Error saving product!");
+  }
 };
 
     const handleCancel = () => {
@@ -169,7 +230,7 @@ export default function CreateProduct() {
           <div className="flex gap-3">
             <div className="flex-1">
               <label className="block font-medium mb-1">Select Store</label>
-              <select className="w-full border  border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-purple-500" required>
+              <select value={store} onChange={(e)=>setStore(e.target.value)} className="w-full border  border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-purple-500" required>
                 <option value="">Choose Store</option>
                 <option>Electro Mart</option>
                 <option>Quantum Gadgets</option>
@@ -181,8 +242,8 @@ export default function CreateProduct() {
             </div>
             <div className="flex-1">
               <label className="block font-medium mb-1">Warehouse</label>
-              <select className="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-purple-500" required>
-                <option value="">Choose Store</option>
+              <select value={warehouse} onChange={(e)=>setWarehouse(e.target.value)} className="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-purple-500" required>
+                <option value="">Choose Warehouse</option>
                 <option>Quaint Warehouse</option>
                 <option>Traditional Warehouse</option>
                 <option>Cool Warehouse</option>
@@ -224,6 +285,8 @@ export default function CreateProduct() {
               <label className="block font-medium mb-1">SKU</label>
               <input
                 type="text"
+                value={sku}
+                onChange={(e)=>setSku(e.target.value)}
                 className="w-full border rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
                 placeholder="Enter SKU"
                 required
@@ -231,7 +294,7 @@ export default function CreateProduct() {
             </div>
             <div className="flex-1">
               <label className="block font-medium mb-1">Selling Type</label>
-              <select className="w-full border  border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-purple-500" required>
+              <select value={sellingType} onChange={(e)=>setSellingType(e.target.value)} className="w-full border  border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-purple-500" required>
                 <option value="" className="">Select</option>
                 <option>Online</option>
                 <option>POS</option>
@@ -253,7 +316,7 @@ export default function CreateProduct() {
                   + Add New
                 </button>
               </div>
-              <select className="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-purple-500" required>
+              <select value={category} onChange={(e)=>setCategory(e.target.value)} className="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-purple-500" required>
                 <option value="">Select Category</option>
                 {options.map((opt, i) => (
                   <option key={i} value={opt.toLowerCase()}>
@@ -264,7 +327,7 @@ export default function CreateProduct() {
             </div>
             <div className="flex-1">
               <label className="block font-medium mb-1">Subcategory</label>
-              <select className="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-purple-500" required>
+              <select value={subcategory} onChange={(e)=>setSubcategory(e.target.value)} className="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-purple-500" required>
                 <option value="" >Select Subcategory</option>
                 <option>Laptop</option>
                 <option>Desktop</option>
@@ -280,7 +343,7 @@ export default function CreateProduct() {
           <div className="flex gap-3">
             <div className="flex-1">
               <label className="block font-medium mb-1">Brand</label>
-              <select className="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-purple-500" required>
+              <select value={brand} onChange={(e)=>setBrand(e.target.value)} className="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-purple-500" required>
                 <option value="">Select Brand</option>
                 <option>Lenovo</option>
                 <option>Nike</option>
@@ -290,7 +353,7 @@ export default function CreateProduct() {
             </div>
             <div className="flex-1">
               <label className="block font-medium mb-1">Unit</label>
-              <select className="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-purple-500" required>
+              <select value={unit} onChange={(e)=>setUnit(e.target.value)} className="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-purple-500" required>
                 <option value="">Select Unit</option>
                 <option>KG</option>
                 <option>Pcs</option>
@@ -305,7 +368,7 @@ export default function CreateProduct() {
           <div className="flex gap-3">
             <div className="flex-1">
               <label className="block font-medium mb-1">Barcode Symbology</label>
-              <select className="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-purple-500" required>
+              <select value={barcodeSymbology} onChange={(e)=>setBarcodeSymbology(e.target.value)} className="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-purple-500" required>
                 <option>Code 128</option>
                 <option>Code 39</option>
                 <option>UPC-A</option>
@@ -329,6 +392,8 @@ export default function CreateProduct() {
           <div>
             <label className="block font-medium mb-1">Description</label>
             <textarea
+              value={description}
+              onChange={(e)=>setDescription(e.target.value)}
               className="w-full border rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
               placeholder="Enter product description"
               required
@@ -357,7 +422,7 @@ export default function CreateProduct() {
                     Cancel
                   </button>
                   <button
-                    onClick={addNewItem}
+                    onClick={handleAddCategory}
                     className="px-3 py-1 bg-green-600 text-white rounded-md"
                   >
                     Add
@@ -410,7 +475,7 @@ export default function CreateProduct() {
               <div className="flex flex-wrap gap-3">
                 <div className="flex-1">
                   <label className="block font-medium mb-1">Product Type*</label>
-                  <select className="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                  <select value={productType} onChange={(e)=>setProductType(e.target.value)} className="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
                     <option value="">Select Product Type</option>
                     <option>Physical</option>
                     <option>Digital</option>
@@ -423,6 +488,8 @@ export default function CreateProduct() {
                   <input
                     type="number"
                     min={0}
+                    value={quantity}
+                    onChange={(e)=>setQuantity(Number(e.target.value))}
                     className="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
@@ -436,13 +503,15 @@ export default function CreateProduct() {
                     type="number"
                     min={0}
                     step={0.01}
+                    value={price}
+                    onChange={(e)=>setPrice(Number(e.target.value))}
                     className="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
 
                 <div className="flex-1">
                   <label className="block font-medium mb-1">Tax Type*</label>
-                  <select className="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                  <select value={taxType} onChange={(e)=>setTaxType(e.target.value)} className="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500" required>
                     <option value="">Select Tax Type</option>
                     <option>Percentage</option>
                     <option>Fixed</option>
@@ -455,6 +524,8 @@ export default function CreateProduct() {
                     type="number"
                     min={0}
                     step={0.01}
+                    value={tax}
+                    onChange={(e)=>setTax(Number(e.target.value))}
                     placeholder="Enter Tax"
                     className="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                     required
@@ -466,7 +537,7 @@ export default function CreateProduct() {
               <div className="flex flex-wrap gap-3 mt-3">
                 <div className="flex-1">
                   <label className="block font-medium mb-1">Discount Type*</label>
-                  <select className="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                  <select value={discountType} onChange={(e)=>setDiscountType(e.target.value)} className="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500" required>
                     <option value="">Select Discount Type</option>
                     <option>Percentage</option>
                     <option>Fixed</option>
@@ -479,6 +550,8 @@ export default function CreateProduct() {
                     type="number"
                     min={0}
                     step={0.01}
+                    value={discountValue}
+                    onChange={(e)=>setDiscountValue(Number(e.target.value))}
                     placeholder="Enter Discount"
                     className="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                     required
@@ -490,6 +563,8 @@ export default function CreateProduct() {
                   <input
                     type="number"
                     min={0}
+                    value={quantityAlert}
+                    onChange={(e)=>setQuantityAlert(Number(e.target.value))}
                     placeholder="Enter Quantity Alert"
                     className="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                     required

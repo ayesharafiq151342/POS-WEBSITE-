@@ -16,6 +16,9 @@ export default function Home() {
   <thead>
     <tr className="bg-gray-100">
       <th className="py-7 py-2">SKU</th>
+      <th className="py-7 py-2">SKU</th>
+      <th className="py-7 py-2">SKU</th>
+      <th className="py-7 py-2">SKU</th>
       <th className="py-7 py-2">Name</th>
       <th className="py-7 py-2">Category</th>
       <th className="py-7 py-2">Brand</th>

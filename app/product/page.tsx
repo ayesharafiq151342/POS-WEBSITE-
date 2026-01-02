@@ -7,9 +7,8 @@ import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
-import { FileSpreadsheet } from "lucide-react";
-import { FileText } from "lucide-react";
-import { Edit, Trash2, Plus } from "lucide-react";
+import { FileSpreadsheet, FileText, Edit, Trash2, Plus } from "lucide-react";
+
 type Product = {
   sku: string;
   name: string;
@@ -25,208 +24,73 @@ type Product = {
 
 export default function Product() {
   const router = useRouter();
-const [products, setProducts] = useState<Product[]>([
-  {
-    sku: "SKU001",
-    name: "Samsung Laptop",
-    category: "Computer",
-    brand: "Samsung",
-    price: 800,
-    unit: "Piece",
-    qty: 10,
-    createdBy: "Admin",
-    status: "inactive",
-      image: "/a.avif",
-  },
-  {
-    sku: "SKU002",
-    name: "Dell Desktop",
-    category: "Computer",
-    brand: "Dell",
-    price: 900,
-    unit: "Piece",
-    qty: 5,
-    createdBy: "Admin",
-    status: "Active",
-    image: "dell.jpg",
-  },
-  {
-    sku: "SKU003",
-    name: "iPhone 14",
-    category: "Mobile",
-    brand: "Apple",
-    price: 1200,
-    unit: "Piece",
-    qty: 15,
-    createdBy: "Admin",
-    status: "Active",
-    image: "iphone.jpg",
-  },
-  {
-    sku: "SKU004",
-    name: "Samsung TV",
-    category: "Electronics",
-    brand: "Samsung",
-    price: 600,
-    unit: "Piece",
-    qty: 8,
-    createdBy: "Admin",
-    status: "inactive",
-    image: "samsung-tv.jpg",
-  },
-  {
-    sku: "SKU005",
-    name: "Nike Running Shoes",
-    category: "Shoe",
-    brand: "Nike",
-    price: 120,
-    unit: "Pair",
-    qty: 20,
-    createdBy: "Admin",
-    status: "Active",
-    image: "nike-shoes.jpg",
-  },
-  {
-    sku: "SKU006",
-    name: "Adidas Sports Shirt",
-    category: "Clothing",
-    brand: "Adidas",
-    price: 50,
-    unit: "Piece",
-    qty: 30,
-    createdBy: "Admin",
-    status: "inactive",
-    image: "adidas-shirt.jpg",
-  },
-  {
-    sku: "SKU007",
-    name: "Sony Headphones",
-    category: "Computer",
-    brand: "Sony",
-    price: 150,
-    unit: "Piece",
-    qty: 12,
-    createdBy: "Admin",
-    status: "Active",
-    image: "sony-headphones.jpg",
-  },
-  {
-    sku: "SKU008",
-    name: "LG Refrigerator",
-    category: "Electronics",
-    brand: "LG",
-    price: 1100,
-    unit: "Piece",
-    qty: 4,
-    createdBy: "Admin",
-    status: "Active",
-    image: "lg-fridge.jpg",
-  },
-  {
-    sku: "SKU009",
-    name: "Wooden Sofa",
-    category: "Furniture",
-    brand: "Samsung",
-    price: 700,
-    unit: "Set",
-    qty: 3,
-    createdBy: "Admin",
-    status: "inactive",
-    image: "sofa.jpg",
-  },
-  {
-    sku: "SKU010",
-    name: "Xiaomi Smart Watch",
-    category: "Accessories",
-    brand: "Samsung",
-    price: 90,
-    unit: "Piece",
-    qty: 25,
-    createdBy: "Admin",
-    status: "Active",
-    image: "xiaomi-watch.jpg",
-  },
-]);
 
-const exportToExcel = (products: Product[]) => {
-  const worksheet = XLSX.utils.json_to_sheet(products);
-  const workbook = XLSX.utils.book_new();
-
-  XLSX.utils.book_append_sheet(workbook, worksheet, "Products");
-
-  const excelBuffer = XLSX.write(workbook, {
-    bookType: "xlsx",
-    type: "array",
-  });
-
-  const data = new Blob([excelBuffer], {
-    type:
-      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-  });
-
-  saveAs(data, "Product_List.xlsx");
-};
- const exportToPDF = (products: Product[]) => {
-  const doc = new jsPDF();
-
-  doc.text("Product List", 14, 10);
-
-  const tableColumn = [
-    "SKU",
-    "Name",
-    "Category",
-    "Price",
-    "Quantity",
-  ];
-
-  const tableRows = products.map((p) => [
-    p.sku,
-    p.name,
-    p.category,
-    p.price,
-    p.qty,
-  ]);
-
-  autoTable(doc, {
-    head: [tableColumn],
-    body: tableRows,
-    startY: 20,
-  });
-
-  doc.save("Product_List.pdf");
-};
+  const [products, setProducts] = useState<Product[]>([]);
   const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
 
   const [searchQuery, setSearchQuery] = useState("");
   const [category, setCategory] = useState("");
   const [brand, setBrand] = useState("");
 
-  // 🔹 Fetch Products
+  const [uploadedImages, setUploadedImages] = useState<string[]>([]);
+
+  // 🔹 Fetch Products from backend
+  const fetchProducts = async () => {
+    try {
+      const res = await fetch("http://localhost:3000/products");
+      const data = await res.json();
+
+      const mappedData: Product[] = data.map((p: any) => ({
+        sku: p.sku || "",
+        name: p.productName || "N/A",
+        category: p.category || "N/A",
+        brand: p.brand || "N/A",
+        price: p.price || 0,
+        unit: p.unit || "N/A",
+        qty: p.quantity || 0,
+        createdBy: p.createdBy || "Admin",
+        status: p.status || "Active",
+        image: p.images?.[0] || null, // ✅ Correct
+      }));
+
+      setProducts(mappedData);
+      setFilteredProducts(mappedData);
+    } catch (err) {
+      console.error("Error fetching products:", err);
+    }
+  };
+
+  // 🔹 Handle Image Upload
+  const handleUpload = async (files: FileList) => {
+    const formData = new FormData();
+    Array.from(files).forEach(file => formData.append("images", file));
+
+    const res = await fetch("http://localhost:3000/upload", {
+      method: "POST",
+      body: formData,
+    });
+
+    const data = await res.json();
+    setUploadedImages(data.urls);
+  };
+
   useEffect(() => {
-    fetch("http://localhost:5000/api/products")
-      .then((res) => res.json())
-      .then((data) => {
-        setProducts(data);
-        setFilteredProducts(data);
-      })
-      .catch((err) => console.log(err));
+    fetchProducts();
   }, []);
 
-  // 🔹 Search + Category + Brand Filter
+  // 🔹 Search + Filter
   useEffect(() => {
-    const filtered = products.filter((p) => {
+    const filtered = products.filter(p => {
       const matchesSearch =
         searchQuery === "" ||
         p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         p.sku.toLowerCase().includes(searchQuery.toLowerCase());
 
       const matchesCategory =
-        category === "" ||
-        p.category.toLowerCase() === category.toLowerCase();
+        category === "" || p.category.toLowerCase() === category.toLowerCase();
 
       const matchesBrand =
-        brand === "" ||
-        p.brand.toLowerCase() === brand.toLowerCase();
+        brand === "" || p.brand.toLowerCase() === brand.toLowerCase();
 
       return matchesSearch && matchesCategory && matchesBrand;
     });
@@ -234,33 +98,64 @@ const exportToExcel = (products: Product[]) => {
     setFilteredProducts(filtered);
   }, [searchQuery, category, brand, products]);
 
+  // 🔹 Delete Product
   const handleDelete = async (sku: string) => {
     if (confirm("Are you sure you want to delete this product?")) {
       try {
-        const response = await fetch(`http://localhost:5000/api/products/${sku}`, {
-          method: 'DELETE',
+        const response = await fetch(`http://localhost:3000/products/${sku}`, {
+          method: "DELETE",
         });
         if (response.ok) {
-          setProducts(products.filter(p => p.sku !== sku));
-          setFilteredProducts(filteredProducts.filter(p => p.sku !== sku));
+          const updated = products.filter(p => p.sku !== sku);
+          setProducts(updated);
+          setFilteredProducts(updated);
         } else {
           alert("Failed to delete product");
         }
-      } catch (error) {
-        console.error("Error deleting product:", error);
+      } catch (err) {
+        console.error(err);
         alert("Error deleting product");
       }
     }
   };
 
+  // 🔹 Export Excel
+  const exportToExcel = (products: Product[]) => {
+    const worksheet = XLSX.utils.json_to_sheet(products);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Products");
+
+    const excelBuffer = XLSX.write(workbook, { bookType: "xlsx", type: "array" });
+    const data = new Blob([excelBuffer], {
+      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    });
+    saveAs(data, "Product_List.xlsx");
+  };
+
+  // 🔹 Export PDF
+  const exportToPDF = (products: Product[]) => {
+    const doc = new jsPDF();
+    doc.text("Product List", 14, 10);
+
+    const tableColumn = ["SKU", "Name", "Category", "Price", "Quantity"];
+    const tableRows = products.map(p => [p.sku, p.name, p.category, p.price, p.qty]);
+
+    autoTable(doc, {
+      head: [tableColumn],
+      body: tableRows,
+      startY: 20,
+    });
+
+    doc.save("Product_List.pdf");
+  };
+
   return (
     <Sidebar>
-      {/* 🔹 Header */}
       <h1 className="text-3xl text-white font-bold mb-4 bg-purple-400 p-4 rounded">
-        Welcome to Product
+        Product Management
       </h1>
 
-      {/* 🔹 Top Actions */}
+      {/* Actions */}
       <div className="flex flex-col md:flex-row gap-4 mb-6">
         <div className="w-full md:w-1/2">
           <h2 className="font-bold text-lg">Product List</h2>
@@ -268,40 +163,37 @@ const exportToExcel = (products: Product[]) => {
         </div>
 
         <div className="w-full md:w-1/2 flex justify-end items-center gap-3">
-             <button
-  onClick={() => exportToExcel(products)}
-  className=" border px-4 py-2 rounded"
-><FileSpreadsheet size={18} className="bg-green-600" />
+          <button
+            onClick={() => exportToExcel(filteredProducts)}
+            className="border px-4 py-2 rounded"
+          >
+            <FileSpreadsheet size={18} className="text-green-600" />
+          </button>
 
-</button><button
-  onClick={() => exportToPDF(products)}
-  className="  border px-4 py-2 rounded ml-2"
-><FileText size={18} className="text-red-600" />
+          <button
+            onClick={() => exportToPDF(filteredProducts)}
+            className="border px-4 py-2 rounded ml-2"
+          >
+            <FileText size={18} className="text-red-600" />
+          </button>
 
-</button>  <button
+          <button
             onClick={() => router.push("/createproduct")}
             className="bg-[var(--accent)] hover:bg-[var(--hover)] rounded h-10 px-4 text-white"
           >
             Add Product
           </button>
-
-          <button className="bg-[var(--accent)] hover:bg-[var(--hover)] rounded h-10 px-4 text-white">
-            Import Product
-          </button>
-     
-
         </div>
       </div>
 
-      {/* 🔹 Table */}
+      {/* Table */}
       <div className="overflow-x-auto">
         <table className="w-full text-black border-collapse">
           <thead>
             <tr>
               <th colSpan={12}>
                 <div className="flex items-center justify-between my-3 gap-4">
-
-                  {/* 🔍 Search */}
+                  {/* Search */}
                   <div className="relative w-64">
                     <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
                       🔍
@@ -310,16 +202,16 @@ const exportToExcel = (products: Product[]) => {
                       type="text"
                       placeholder="Search Products..."
                       value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
+                      onChange={e => setSearchQuery(e.target.value)}
                       className="w-full pl-10 pr-3 py-2 border rounded-lg focus:ring-2 focus:ring-purple-600"
                     />
                   </div>
 
-                  {/* 🎯 Filters */}
+                  {/* Filters */}
                   <div className="flex gap-3">
                     <select
                       value={category}
-                      onChange={(e) => setCategory(e.target.value)}
+                      onChange={e => setCategory(e.target.value)}
                       className="py-2 px-3 border rounded-md"
                     >
                       <option value="">Category</option>
@@ -332,7 +224,7 @@ const exportToExcel = (products: Product[]) => {
 
                     <select
                       value={brand}
-                      onChange={(e) => setBrand(e.target.value)}
+                      onChange={e => setBrand(e.target.value)}
                       className="py-2 px-3 border rounded-md"
                     >
                       <option value="">Brand</option>
@@ -342,7 +234,6 @@ const exportToExcel = (products: Product[]) => {
                       <option value="Apple">Apple</option>
                     </select>
 
-                    {/* 🔄 Clear */}
                     <button
                       onClick={() => {
                         setSearchQuery("");
@@ -359,66 +250,63 @@ const exportToExcel = (products: Product[]) => {
             </tr>
 
             <tr className="bg-[var(--accent)] text-center">
-              <th className="px-3 py-2">Image</th>
-              <th className="px-3 py-2">SKU</th>
-              <th className="px-3 py-2">Name</th>
-              <th className="px-3 py-2">Category</th>
-              <th className="px-3 py-2">Brand</th>
-              <th className="px-3 py-2">Price</th>
-              <th className="px-3 py-2">Unit</th>
-              <th className="px-3 py-2">Qty</th>
-              <th className="px-3 py-2">Created By</th>
-              <th className="px-3 py-2 ">Status</th>
-              <th className="px-3 py-2">Actions</th>
+              <th>Image</th>
+              <th>SKU</th>
+              <th>Name</th>
+              <th>Category</th>
+              <th>Brand</th>
+              <th>Price</th>
+              <th>Unit</th>
+              <th>Qty</th>
+              <th>Created By</th>
+              <th>Status</th>
+              <th>Actions</th>
             </tr>
           </thead>
 
           <tbody>
-            {filteredProducts.map((p, index) => (
-              <tr
-                key={index}
-                className="text-center border-b hover:bg-gray-100"
-              >
+            {filteredProducts.map((p, idx) => (
+              <tr key={idx} className="text-center border-b hover:bg-gray-100">
                 <td className="px-3 py-2 flex justify-center">
-               <img
-  src={
-    p.image
-      ? `http://localhost:5000/uploads/${p.image}`  // backend se
-      : "/no-image.png"                             // public folder fallback
-  }
-  alt={p.name}
-  className="w-12 h-12 rounded object-cover"
-/>
-
+                  <img
+                    src={p.image ? `http://localhost:3000${p.image}` : "/no-image.png"} // ✅ Fixed
+                    alt={p.name}
+                    className="w-12 h-12 rounded object-cover"
+                  />
                 </td>
-                <td className="px-3 py-2">{p.sku}</td>
-                <td className="px-3 py-2 cursor-pointer text-blue-600 hover:underline" onClick={() => router.push(`/createproduct?edit=${p.sku}`)}>{p.name}</td>
-                <td className="px-3 py-2">{p.category}</td>
-                <td className="px-3 py-2">{p.brand}</td>
-                <td className="px-3 py-2">{p.price}</td>
-                <td className="px-3 py-2">{p.unit}</td>
-                <td className="px-3 py-2">{p.qty}</td>
-                <td className="px-3 py-2">{p.createdBy}</td>
-              <td className="px-3 py-2 w-24">
-  <span
-    className={`px-2 py-1 rounded text-white ${
-      p.status.toLowerCase() === "active"
-        ? "bg-green-500"
-        : p.status.toLowerCase() === "inactive"
-        ? "bg-red-400"
-        : "bg-yellow-500"
-    }`}
-  >
-    {p.status}
-  </span>
-</td>
-                <td className="px-3 py-2 flex justify-center gap-2">
+                <td>{p.sku}</td>
+                <td
+                  className="cursor-pointer text-blue-600 hover:underline"
+                  onClick={() => router.push(`/createproduct?edit=${p.sku}`)}
+                >
+                  {p.name}
+                </td>
+                <td>{p.category}</td>
+                <td>{p.brand}</td>
+                <td>{p.price}</td>
+                <td>{p.unit}</td>
+                <td>{p.qty}</td>
+                <td>{p.createdBy}</td>
+                <td>
+                  <span
+                    className={`px-2 py-1 rounded text-white ${
+                      p.status.toLowerCase() === "active"
+                        ? "bg-green-500"
+                        : p.status.toLowerCase() === "inactive"
+                        ? "bg-red-400"
+                        : "bg-yellow-500"
+                    }`}
+                  >
+                    {p.status}
+                  </span>
+                </td>
+                <td className="flex justify-center gap-2">
                   <button
                     onClick={() => router.push(`/createproduct?edit=${p.sku}`)}
                     className="text-blue-500 hover:text-blue-700"
                     title="Edit"
                   >
-                    <Edit size={18}  />
+                    <Edit size={18} />
                   </button>
                   <button
                     onClick={() => handleDelete(p.sku)}
@@ -428,14 +316,14 @@ const exportToExcel = (products: Product[]) => {
                     <Trash2 size={18} />
                   </button>
                   <button
-                    onClick={() => router.push('/createproduct')}
+                    onClick={() => router.push("/createproduct")}
                     className="text-green-500 hover:text-green-700"
                     title="Add"
                   >
                     <Plus size={18} />
                   </button>
                 </td>
- </tr>
+              </tr>
             ))}
           </tbody>
         </table>
