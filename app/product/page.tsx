@@ -7,7 +7,7 @@ import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
-import { FileSpreadsheet, FileText, Edit, Trash2, Plus } from "lucide-react";
+import { FileSpreadsheet, FileText, Edit, Trash2, Plus, Eye } from "lucide-react";
 
 type Product = {
   sku: string;
@@ -302,12 +302,13 @@ export default function Product() {
                 </td>
                 <td className="flex justify-center gap-2">
                   <button
-                    onClick={() => router.push(`/createproduct?edit=${p.sku}`)}
-                    className="text-blue-500 hover:text-blue-700"
-                    title="Edit"
+                    onClick={() => router.push(`/productdetail?sku=${p.sku}`)}
+                    className="text-purple-500 hover:text-purple-700"
+                    title="View"
                   >
-                    <Edit size={18} />
+                    <Eye size={18} />
                   </button>
+               
                   <button
                     onClick={() => handleDelete(p.sku)}
                     className="text-red-500 hover:text-red-700"
