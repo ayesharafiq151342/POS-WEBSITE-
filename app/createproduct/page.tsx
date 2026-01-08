@@ -1,5 +1,6 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import Sidebar from "../components/sidebar/page";
 import { Pencil, Trash } from "lucide-react";
 import TestPopup from "./testpop";
@@ -53,6 +54,47 @@ export default function CreateProduct() {
   const [discountType, setDiscountType] = useState("");
   const [discountValue, setDiscountValue] = useState(0);
   const [quantityAlert, setQuantityAlert] = useState(0);
+  const [manufactureDate, setManufactureDate] = useState("");
+  const [expiryDate, setExpiryDate] = useState("");
+
+  const searchParams = useSearchParams();
+  const editSku = searchParams.get('edit');
+
+  // Load product data for editing
+  useEffect(() => {
+    if (editSku) {
+      fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/products/${editSku}`)
+        .then((res) => res.json())
+        .then((product) => {
+          if (product) {
+            setProductName(product.productName || "");
+            setSlug(product.slug || "");
+            setBarcode(product.barcode || "");
+            setStore(product.store || "");
+            setWarehouse(product.warehouse || "");
+            setSku(product.sku || "");
+            setSellingType(product.sellingType || "");
+            setCategory(product.category || "");
+            setSubcategory(product.subcategory || "");
+            setBrand(product.brand || "");
+            setUnit(product.unit || "");
+            setBarcodeSymbology(product.barcodeSymbology || "Code 128");
+            setDescription(product.description || "");
+            setProductType(product.productType || "");
+            setQuantity(product.quantity || 0);
+            setPrice(product.price || 0);
+            setTaxType(product.taxType || "");
+            setTax(product.tax || 0);
+            setDiscountType(product.discountType || "");
+            setDiscountValue(product.discountValue || 0);
+            setQuantityAlert(product.quantityAlert || 0);
+            setManufactureDate(product.manufactureDate ? product.manufactureDate.split('T')[0] : "");
+            setExpiryDate(product.expiryDate ? product.expiryDate.split('T')[0] : "");
+          }
+        })
+        .catch((err) => console.error("Error loading product for edit:", err));
+    }
+  }, [editSku]);
 
   const handleAddCategory = () => {
     if (newItem && !options.includes(newItem)) {
@@ -136,7 +178,7 @@ export default function CreateProduct() {
     images.forEach((img) => formData.append("images", img));
 
     try {
-      const resImages = await fetch("http://localhost:3000/upload", {
+      const resImages = await fetch(`http://localhost:5000/upload`, {
         method: "POST",
         body: formData,
       });
@@ -153,19 +195,19 @@ export default function CreateProduct() {
   }
 
   // 2️⃣ Save warranty data
-  // try {
-  //   const resWarranty = await fetch("http://localhost:3000/warranty", {
-  //     method: "POST",
-  //     headers: { "Content-Type": "application/json" },
-  //     body: JSON.stringify(warrantyData),
-  //   });
-  //   if (!resWarranty.ok) throw new Error("Failed to save warranty data");
-  //   alert("Warranty data saved successfully!");
-  // } catch (err) {
-  //   console.error(err);
-  //   alert("Error saving warranty!");
-  //   return;
-  // }
+  try {
+    const resWarranty = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/warranty`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(warrantyData),
+    });
+    if (!resWarranty.ok) throw new Error("Failed to save warranty data");
+    alert("Warranty data saved successfully!");
+  } catch (err) {
+    console.error(err);
+    alert("Error saving warranty!");
+    return;
+  }
 
   // 3️⃣ Collect product data
   const productData = {
@@ -190,6 +232,8 @@ export default function CreateProduct() {
     discountType,
     discountValue,
     quantityAlert,
+    manufactureDate,
+    expiryDate,
     images: imageUrls,
     warranty: warrantyData,
     mode,
@@ -198,7 +242,7 @@ export default function CreateProduct() {
 
   // 4️⃣ Send to /api/products
   try {
-    const resProduct = await fetch("http://localhost:3000/products", {
+    const resProduct = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/products`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(productData),
@@ -398,6 +442,28 @@ export default function CreateProduct() {
               placeholder="Enter product description"
               required
             />
+          </div>
+
+          {/* Manufacture Date & Expiry Date */}
+          <div className="flex gap-3">
+            <div className="flex-1">
+              <label className="block font-medium mb-1">Manufacture Date</label>
+              <input
+                type="date"
+                value={manufactureDate}
+                onChange={(e) => setManufactureDate(e.target.value)}
+                className="w-full border rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
+              />
+            </div>
+            <div className="flex-1">
+              <label className="block font-medium mb-1">Expiry Date</label>
+              <input
+                type="date"
+                value={expiryDate}
+                onChange={(e) => setExpiryDate(e.target.value)}
+                className="w-full border rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
+              />
+            </div>
           </div>
 
        

@@ -42,6 +42,10 @@ export default function Sidebar({ children }) {
               <a href="../createproduct" className="block px-2 py-1 hover:bg-[var(--hover)] rounded">
               Create Product
               </a>
+            </li> <li>
+              <a href="../expire" className="block px-2 py-1 hover:bg-[var(--hover)] rounded">
+             expire Date 
+              </a>
             </li>
           </ul>
         </div>

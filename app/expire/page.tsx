@@ -12,13 +12,9 @@ import { FileSpreadsheet, FileText, Edit, Trash2, Plus, Eye } from "lucide-react
 type Product = {
   sku: string;
   name: string;
-  category: string;
-  brand: string;
-  price: number;
-  unit: string;
-  qty: number;
-  createdBy: string;
-  status: string;
+   manufacturer: string;
+  expiryDate: string
+ 
   image?: string;
 };
 
@@ -29,8 +25,8 @@ export default function Product() {
   const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
 
   const [searchQuery, setSearchQuery] = useState("");
-  const [category, setCategory] = useState("");
-  const [brand, setBrand] = useState("");
+  const [manufacturer, setManufacturer] = useState("");
+  const [expiryDate, setExpiryDate] = useState("");
 
   const [uploadedImages, setUploadedImages] = useState<string[]>([]);
 
@@ -43,12 +39,9 @@ export default function Product() {
       const mappedData: Product[] = data.map((p: any) => ({
         sku: p.sku || "",
         name: p.productName || "N/A",
-        category: p.category || "N/A",
-        brand: p.brand || "N/A",
-        price: p.price || 0,
-        unit: p.unit || "N/A",
-        qty: p.quantity || 0,
-        createdBy: p.createdBy || "Admin",
+        manufacturer: p.manufacturer || "N/A",
+        expiryDate: p.expiryDate || "N/A",
+       
         status: p.status || "Active",
         image: p.images?.[0] || null, // ✅ Correct
       }));
@@ -86,17 +79,17 @@ export default function Product() {
         p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         p.sku.toLowerCase().includes(searchQuery.toLowerCase());
 
-      const matchesCategory =
-        category === "" || p.category.toLowerCase() === category.toLowerCase();
+      const matchesmanufacturer =
+        manufacturer === "" || p.manufacturer.toLowerCase() === manufacturer.toLowerCase();
 
-      const matchesBrand =
-        brand === "" || p.brand.toLowerCase() === brand.toLowerCase();
+      const matchesexpiryDate =
+        expiryDate === "" || p.expiryDate.toLowerCase() === expiryDate.toLowerCase();
 
-      return matchesSearch && matchesCategory && matchesBrand;
+      return matchesSearch && matchesmanufacturer && matchesexpiryDate;
     });
 
     setFilteredProducts(filtered);
-  }, [searchQuery, category, brand, products]);
+  }, [searchQuery, manufacturer, expiryDate, products]);
 
   // 🔹 Delete Product
   const handleDelete = async (sku: string) => {
@@ -137,8 +130,8 @@ export default function Product() {
     const doc = new jsPDF();
     doc.text("Product List", 14, 10);
 
-    const tableColumn = ["SKU", "Name", "Category", "Price", "Quantity"];
-    const tableRows = products.map(p => [p.sku, p.name, p.category, p.price, p.qty]);
+    const tableColumn = ["SKU", "Name", "manufacturer", "Price", "Quantity"];
+    const tableRows = products.map(p => [p.sku, p.name, p.manufacturer,]);
 
     autoTable(doc, {
       head: [tableColumn],
@@ -210,11 +203,11 @@ export default function Product() {
                   {/* Filters */}
                   <div className="flex gap-3">
                     <select
-                      value={category}
-                      onChange={e => setCategory(e.target.value)}
+                      value={manufacturer}
+                      onChange={e => setManufacturer(e.target.value)}
                       className="py-2 px-3 border rounded-md"
                     >
-                      <option value="">Category</option>
+                      <option value="">manufacturer</option>
                       <option value="Computer">Computer</option>
                       <option value="Electronics">Electronics</option>
                       <option value="Shoe">Shoe</option>
@@ -223,11 +216,11 @@ export default function Product() {
                     </select>
 
                     <select
-                      value={brand}
-                      onChange={e => setBrand(e.target.value)}
+                      value={expiryDate}
+                      onChange={e => setExpiryDate(e.target.value)}
                       className="py-2 px-3 border rounded-md"
                     >
-                      <option value="">Brand</option>
+                      <option value="">expiryDate</option>
                       <option value="Samsung">Samsung</option>
                       <option value="Adidas">Adidas</option>
                       <option value="Nike">Nike</option>
@@ -237,8 +230,8 @@ export default function Product() {
                     <button
                       onClick={() => {
                         setSearchQuery("");
-                        setCategory("");
-                        setBrand("");
+                       setManufacturer("");
+                        setExpiryDate("");
                       }}
                       className="px-3 py-2 border rounded"
                     >
@@ -253,13 +246,9 @@ export default function Product() {
               <th>Image</th>
               <th>SKU</th>
               <th>Name</th>
-              <th>Category</th>
-              <th>Brand</th>
-              <th>Price</th>
-              <th>Unit</th>
-              <th>Qty</th>
-              <th>Created By</th>
-              <th>Status</th>
+              <th>Manufacturer</th>
+              <th>ExpiryDate</th>
+             
               <th>Actions</th>
             </tr>
           </thead>
@@ -281,25 +270,10 @@ export default function Product() {
                 >
                   {p.name}
                 </td>
-                <td>{p.category}</td>
-                <td>{p.brand}</td>
-                <td>{p.price}</td>
-                <td>{p.unit}</td>
-                <td>{p.qty}</td>
-                <td>{p.createdBy}</td>
-                <td>
-                  <span
-                    className={`px-2 py-1 rounded text-white ${
-                      p.status.toLowerCase() === "active"
-                        ? "bg-green-500"
-                        : p.status.toLowerCase() === "inactive"
-                        ? "bg-red-400"
-                        : "bg-yellow-500"
-                    }`}
-                  >
-                    {p.status}
-                  </span>
-                </td>
+                <td>{p.manufacturer}</td>
+                <td>{p.expiryDate}</td>
+            
+              
                 <td className="flex justify-center gap-2">
                   <button
                     onClick={() => router.push(`/productdetail?sku=${p.sku}`)}
@@ -316,13 +290,7 @@ export default function Product() {
                   >
                     <Trash2 size={18} />
                   </button>
-                  <button
-                    onClick={() => router.push("/createproduct")}
-                    className="text-green-500 hover:text-green-700"
-                    title="Add"
-                  >
-                    <Plus size={18} />
-                  </button>
+              
                 </td>
               </tr>
             ))}
