@@ -248,9 +248,7 @@ export default function Product() {
                 </div>
               </th>
             </tr>
-
-            <tr className="bg-[var(--accent)] text-center">
-              <th>Image</th>
+ <tr className="bg-[var(--accent)] h-10 text-left">
               <th>SKU</th>
               <th>Name</th>
               <th>Category</th>
@@ -266,20 +264,15 @@ export default function Product() {
 
           <tbody>
             {filteredProducts.map((p, idx) => (
-              <tr key={idx} className="text-center border-b hover:bg-gray-100">
-                <td className="px-3 py-2 flex justify-center">
-                  <img
-                    src={p.image ? `http://localhost:5000${p.image}` : "/no-image.png"} // ✅ Fixed
-                    alt={p.name}
-                    className="w-12 h-12 rounded object-cover"
-                  />
-                </td>
+              <tr key={idx} className="text-start border-b hover:bg-gray-100 cursor-pointer" onClick={() => router.push(`/createproduct?edit=${p.sku}`)}>
                 <td>{p.sku}</td>
-                <td
-                  className="cursor-pointer text-blue-600 hover:underline"
-                  onClick={() => router.push(`/createproduct?edit=${p.sku}`)}
-                >
-                  {p.name}
+                <td className="flex items-center justify-start gap-2">
+                  <img
+                    src={p.image ? `http://localhost:5000${p.image}` : "/no-image.png"}
+                    alt={p.name}
+                    className="w-12 h-12 m-3 rounded object-cover"
+                  />
+                  <span>{p.name}</span>
                 </td>
                 <td>{p.category}</td>
                 <td>{p.brand}</td>
@@ -302,22 +295,28 @@ export default function Product() {
                 </td>
                 <td className="flex justify-center gap-2">
                   <button
-                    onClick={() => router.push(`/productdetail?sku=${p.sku}`)}
+                    onClick={(e) => { e.stopPropagation(); router.push(`/productdetail?sku=${p.sku}`); }}
                     className="text-purple-500 hover:text-purple-700"
                     title="View"
                   >
                     <Eye size={18} />
                   </button>
-               
                   <button
-                    onClick={() => handleDelete(p.sku)}
+                    onClick={(e) => { e.stopPropagation(); router.push(`/createproduct?edit=${p.sku}`); }}
+                    className="text-blue-500 hover:text-blue-700"
+                    title="Edit"
+                  >
+                    <Edit size={18} />
+                  </button>
+                  <button
+                    onClick={(e) => { e.stopPropagation(); handleDelete(p.sku); }}
                     className="text-red-500 hover:text-red-700"
                     title="Delete"
                   >
                     <Trash2 size={18} />
                   </button>
                   <button
-                    onClick={() => router.push("/createproduct")}
+                    onClick={(e) => { e.stopPropagation(); router.push("/createproduct"); }}
                     className="text-green-500 hover:text-green-700"
                     title="Add"
                   >

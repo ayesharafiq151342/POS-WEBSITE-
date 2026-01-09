@@ -242,13 +242,15 @@ export default function CreateProduct() {
 
   // 4️⃣ Send to /api/products
   try {
-    const resProduct = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/products`, {
-      method: "POST",
+    const method = editSku ? "PUT" : "POST";
+    const url = editSku ? `${process.env.NEXT_PUBLIC_BACKEND_URL}/products/${editSku}` : `${process.env.NEXT_PUBLIC_BACKEND_URL}/products`;
+    const resProduct = await fetch(url, {
+      method,
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(productData),
     });
     if (!resProduct.ok) throw new Error("Failed to save product");
-    alert("Product saved successfully!");
+    alert(editSku ? "Product updated successfully!" : "Product saved successfully!");
   } catch (err) {
     console.error(err);
     alert("Error saving product!");
@@ -767,7 +769,7 @@ export default function CreateProduct() {
 
   return (
     <Sidebar>
-      <h1 className="text-3xl font-bold mb-4 bg-[var(--accent)] text-white p-3 rounded">Welcome to Create Product</h1>
+      <h1 className="text-3xl font-bold mb-4 bg-[var(--accent)] text-white p-3 rounded">Welcome to {editSku ? 'Edit' : 'Create'} Product</h1>
       <div className="bg-white  w-full rounded-md shadow">
         {accordionItems.map((item, index) => (
           <div key={index} className="border-b border-gray-200">
@@ -791,7 +793,7 @@ export default function CreateProduct() {
       onClick={handleSubmit}
       className="bg-[var(--accent)] hover:bg-[var(--hover)] text-white rounded w-32 h-10 mt-5 transition-colors"
     >
-      Submit
+      {editSku ? 'Update' : 'Submit'}
     </button>
           <button
       type="button"
