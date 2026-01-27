@@ -200,7 +200,7 @@ export default function Product() {
 
   return (
     <Sidebar>
-      <h1 className="text-3xl text-white font-bold mb-4 bg-purple-400 p-4 rounded">
+      <h1 className="text-3xl text-white font-bold mb-4 bg-[var(--accent)] p-4 rounded">
         Product Management
       </h1>
 
@@ -292,8 +292,8 @@ export default function Product() {
               </th>
             </tr>
 
-            <tr className="bg-[var(--accent)] h-10 text-left">
-              <th className="ml-10">SKU</th>
+            <tr className="bg-[var(--accent)] text-white h-10 text-left">
+              <th className="px-4">SKU</th>
               <th>Name</th>
               <th>Manufacturer</th>
               <th>ExpiryDate</th>
@@ -305,7 +305,7 @@ export default function Product() {
           <tbody>
             {filteredProducts.map((p, idx) => (
               <tr key={idx} className="text-left border-b hover:bg-gray-100 cursor-pointer" onClick={() => handleEditClick(p)}>
-                <td>{p.sku}</td>
+                <td className="px-4" >{p.sku}</td>
                 <td className="flex items-center justify-start gap-2">
                   <img
                     src={p.image ? `http://localhost:5000${p.image}` : "/no-image.png"}
@@ -318,10 +318,10 @@ export default function Product() {
                 <td>{p.expiryDate}</td>
               
               
-                <td className="flex justify-center gap-2">
+                <td className="">
                   <button
                     onClick={(e) => { e.stopPropagation(); router.push(`/productdetail?sku=${p.sku}`); }}
-                    className="text-purple-500 hover:text-purple-700"
+                    className="text-purple-500 hover:text-purple-700 mr-3"
                     title="View"
                   >
                     <Eye size={18} />
@@ -329,7 +329,7 @@ export default function Product() {
                
                   <button
                     onClick={(e) => { e.stopPropagation(); handleDelete(p.sku); }}
-                    className="text-red-500 hover:text-red-700"
+                    className="text-red-500 hover:text-red-700 mr-3"
                     title="Delete"
                   >
                     <Trash2 size={18} />

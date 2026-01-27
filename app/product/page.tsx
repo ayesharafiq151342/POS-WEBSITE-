@@ -151,7 +151,7 @@ export default function Product() {
 
   return (
     <Sidebar>
-      <h1 className="text-3xl text-white font-bold mb-4 bg-purple-400 p-4 rounded">
+      <h1 className="text-3xl text-white font-bold mb-4 bg-[var(--accent)] p-4 rounded">
         Product Management
       </h1>
 
@@ -167,7 +167,7 @@ export default function Product() {
             onClick={() => exportToExcel(filteredProducts)}
             className="border px-4 py-2 rounded"
           >
-            <FileSpreadsheet size={18} className="text-green-600" />
+            <FileSpreadsheet size={18} className="text-[var(--accent)]" />
           </button>
 
           <button
@@ -188,11 +188,11 @@ export default function Product() {
 
       {/* Table */}
       <div className="overflow-x-auto">
-        <table className="w-full text-black border-collapse">
+        <table className="w-full  border-collapse">
           <thead>
             <tr>
               <th colSpan={12}>
-                <div className="flex items-center justify-between my-3 gap-4">
+                <div className="flex items-center  justify-between my-3 gap-4">
                   {/* Search */}
                   <div className="relative w-64">
                     <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
@@ -248,8 +248,9 @@ export default function Product() {
                 </div>
               </th>
             </tr>
- <tr className="bg-[var(--accent)] h-10 text-left">
-              <th>SKU</th>
+ <tr className="bg-[var(--accent)] text-white h-10 text-left">
+  <td className="px-4">SKU</td>
+
               <th>Name</th>
               <th>Category</th>
               <th>Brand</th>
@@ -265,7 +266,7 @@ export default function Product() {
           <tbody>
             {filteredProducts.map((p, idx) => (
               <tr key={idx} className="text-start border-b hover:bg-gray-100 cursor-pointer" onClick={() => router.push(`/createproduct?edit=${p.sku}`)}>
-                <td>{p.sku}</td>
+                <td className="px-4">{p.sku}</td>
                 <td className="flex items-center justify-start gap-2">
                   <img
                     src={p.image ? `http://localhost:5000${p.image}` : "/no-image.png"}
@@ -284,7 +285,7 @@ export default function Product() {
                   <span
                     className={`px-2 py-1 rounded text-white ${
                       p.status.toLowerCase() === "active"
-                        ? "bg-green-500"
+                        ? "bg-[var(--accent)]"
                         : p.status.toLowerCase() === "inactive"
                         ? "bg-red-400"
                         : "bg-yellow-500"
@@ -293,31 +294,31 @@ export default function Product() {
                     {p.status}
                   </span>
                 </td>
-                <td className="flex justify-center gap-2">
+                <td className="">
                   <button
                     onClick={(e) => { e.stopPropagation(); router.push(`/productdetail?sku=${p.sku}`); }}
-                    className="text-purple-500 hover:text-purple-700"
+                    className="text-purple-500 hover:text-purple-700 mr-3"
                     title="View"
                   >
                     <Eye size={18} />
                   </button>
                   <button
                     onClick={(e) => { e.stopPropagation(); router.push(`/createproduct?edit=${p.sku}`); }}
-                    className="text-blue-500 hover:text-blue-700"
+                    className="text-blue-500 hover:text-blue-700 mr-3"
                     title="Edit"
                   >
                     <Edit size={18} />
                   </button>
                   <button
                     onClick={(e) => { e.stopPropagation(); handleDelete(p.sku); }}
-                    className="text-red-500 hover:text-red-700"
+                    className="text-red-500 hover:text-red-700 mr-3"
                     title="Delete"
                   >
                     <Trash2 size={18} />
                   </button>
                   <button
                     onClick={(e) => { e.stopPropagation(); router.push("/createproduct"); }}
-                    className="text-green-500 hover:text-green-700"
+                    className="text-[var(--accent)]  hover:text-green-700 mr-3"
                     title="Add"
                   >
                     <Plus size={18} />

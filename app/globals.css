@@ -3,11 +3,11 @@
 :root {
   --background: #e9e7e7;
   --foreground: #171717;  ;  /* Tailwind text */
-  --primary: #6366F1 ;
-  --accent: #c27aff ; 
+  --primary: #1e8a8a ;
+  --accent: #1e8a8a ; 
   --card: #FFFFFF;
   --border: #E0E7FF;
-  --hover: #ac8bf1; 
+  --hover: #0e5757; 
   --bg_white: #FFFFFF;
   --danger: #d60101;
   --hover_danger: #fd3d3d;

@@ -88,7 +88,7 @@ return (
     <div className="max-w-6xl mx-auto py-10">
 
       {/* Top Title */}
-      <h1 className="text-2xl font-semibold text-gray-800 mb-6">
+      <h1 className="text-2xl font-semibold bg-[var(--accent)]  mb-6">
         Product Details
       </h1>
 
