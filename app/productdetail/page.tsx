@@ -21,6 +21,8 @@ export default function ProductDetail() {
   const searchParams = useSearchParams();
   const sku = searchParams.get("sku");
 
+  const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL ?? "http://localhost:5000";
+
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -29,7 +31,7 @@ export default function ProductDetail() {
 
     const fetchProduct = async () => {
       try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/products`);
+        const res = await fetch(`${BACKEND_URL}/products`);
         if (res.ok) {
           const data = await res.json();
           const productData = data.find((p: any) => p.sku === sku);
@@ -101,7 +103,7 @@ return (
             <img
               src={
                 product.image
-                  ? `${process.env.NEXT_PUBLIC_BACKEND_URL}${product.image}`
+                  ? `${BACKEND_URL}${product.image}`
                   : "/no-image.png"
               }
               className="w-full h-[450px] object-cover rounded-lg"
@@ -119,7 +121,7 @@ return (
                 <img
                   src={
                     product.image
-                      ? `${process.env.NEXT_PUBLIC_BACKEND_URL}${product.image}`
+                      ? `${BACKEND_URL}${product.image}`
                       : "/no-image.png"
                   }
                   className="w-full h-24 object-cover rounded-md"

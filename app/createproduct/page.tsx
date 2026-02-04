@@ -255,7 +255,41 @@ export default function CreateProduct() {
     console.error(err);
     alert("Error saving product!");
   }
-};
+};useEffect(() => {
+  if (editSku) {
+    fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/products/${editSku}`)
+      .then((res) => res.json())
+      .then((product) => {
+        if (product) {
+          setProductName(product.productName || "");
+          setSlug(product.slug || "");
+          setBarcode(product.barcode || "");
+          setStore(product.store || "");
+          setWarehouse(product.warehouse || "");
+          setSku(product.sku || "");
+          setSellingType(product.sellingType || "");
+          setCategory(product.category || "");
+          setSubcategory(product.subcategory || "");
+          setBrand(product.brand || "");
+          setUnit(product.unit || "");
+          setBarcodeSymbology(product.barcodeSymbology || "Code 128");
+          setDescription(product.description || "");
+          setProductType(product.productType || "");
+          setQuantity(product.quantity || 0);
+          setPrice(product.price || 0);
+          setTaxType(product.taxType || "");
+          setTax(product.tax || 0);
+          setDiscountType(product.discountType || "");
+          setDiscountValue(product.discountValue || 0);
+          setQuantityAlert(product.quantityAlert || 0);
+          setManufactureDate(product.manufactureDate ? product.manufactureDate.split('T')[0] : "");
+          setExpiryDate(product.expiryDate ? product.expiryDate.split('T')[0] : "");
+        }
+      })
+      .catch((err) => console.error("Error loading product for edit:", err));
+  }
+}, [editSku]);
+
 
     const handleCancel = () => {
     setCancel(true);
@@ -759,7 +793,8 @@ export default function CreateProduct() {
     {
       title: "Images",
       content: (<>
-  <ImageUpload onChange={setImages} images={images} />   </>),
+<ImageUpload onChange={setImages} images={images} />
+  </>),
     },    {
       title: "Custom Fields",
       content: 

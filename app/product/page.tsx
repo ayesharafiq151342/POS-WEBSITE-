@@ -24,20 +24,18 @@ type Product = {
 
 export default function Product() {
   const router = useRouter();
+  const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL ?? "http://localhost:5000";
 
   const [products, setProducts] = useState<Product[]>([]);
   const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
-
   const [searchQuery, setSearchQuery] = useState("");
   const [category, setCategory] = useState("");
   const [brand, setBrand] = useState("");
 
-  const [uploadedImages, setUploadedImages] = useState<string[]>([]);
-
-  // 🔹 Fetch Products from backend
+  // 🔹 Fetch products
   const fetchProducts = async () => {
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/products`);
+      const res = await fetch(`${BACKEND_URL}/products`);
       const data = await res.json();
 
       const mappedData: Product[] = data.map((p: any) => ({
@@ -50,7 +48,7 @@ export default function Product() {
         qty: p.quantity || 0,
         createdBy: p.createdBy || "Admin",
         status: p.status || "Active",
-        image: p.images?.[0] || null, // ✅ Correct
+        image: p.images?.[0] || null,
       }));
 
       setProducts(mappedData);
@@ -60,38 +58,19 @@ export default function Product() {
     }
   };
 
-  // 🔹 Handle Image Upload
-  const handleUpload = async (files: FileList) => {
-    const formData = new FormData();
-    Array.from(files).forEach(file => formData.append("images", file));
-
-    const res = await fetch("http://localhost:5000/upload", {
-      method: "POST",
-      body: formData,
-    });
-
-    const data = await res.json();
-    setUploadedImages(data.urls);
-  };
-
   useEffect(() => {
     fetchProducts();
   }, []);
 
-  // 🔹 Search + Filter
+  // 🔹 Search & Filter
   useEffect(() => {
     const filtered = products.filter(p => {
       const matchesSearch =
         searchQuery === "" ||
         p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         p.sku.toLowerCase().includes(searchQuery.toLowerCase());
-
-      const matchesCategory =
-        category === "" || p.category.toLowerCase() === category.toLowerCase();
-
-      const matchesBrand =
-        brand === "" || p.brand.toLowerCase() === brand.toLowerCase();
-
+      const matchesCategory = category === "" || p.category.toLowerCase() === category.toLowerCase();
+      const matchesBrand = brand === "" || p.brand.toLowerCase() === brand.toLowerCase();
       return matchesSearch && matchesCategory && matchesBrand;
     });
 
@@ -102,9 +81,7 @@ export default function Product() {
   const handleDelete = async (sku: string) => {
     if (confirm("Are you sure you want to delete this product?")) {
       try {
-        const response = await fetch(`http://localhost:5000/products/${sku}`, {
-          method: "DELETE",
-        });
+        const response = await fetch(`${BACKEND_URL}/products/${sku}`, { method: "DELETE" });
         if (response.ok) {
           const updated = products.filter(p => p.sku !== sku);
           setProducts(updated);
@@ -140,12 +117,7 @@ export default function Product() {
     const tableColumn = ["SKU", "Name", "Category", "Price", "Quantity"];
     const tableRows = products.map(p => [p.sku, p.name, p.category, p.price, p.qty]);
 
-    autoTable(doc, {
-      head: [tableColumn],
-      body: tableRows,
-      startY: 20,
-    });
-
+    autoTable(doc, { head: [tableColumn], body: tableRows, startY: 20 });
     doc.save("Product_List.pdf");
   };
 
@@ -188,11 +160,11 @@ export default function Product() {
 
       {/* Table */}
       <div className="overflow-x-auto">
-        <table className="w-full  border-collapse">
+        <table className="w-full border-collapse">
           <thead>
             <tr>
               <th colSpan={12}>
-                <div className="flex items-center  justify-between my-3 gap-4">
+                <div className="flex items-center justify-between my-3 gap-4">
                   {/* Search */}
                   <div className="relative w-64">
                     <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
@@ -248,9 +220,8 @@ export default function Product() {
                 </div>
               </th>
             </tr>
- <tr className="bg-[var(--accent)] text-white h-10 text-left">
-  <td className="px-4">SKU</td>
-
+            <tr className="bg-[var(--accent)] text-white h-10 text-left">
+              <th className="px-4">SKU</th>
               <th>Name</th>
               <th>Category</th>
               <th>Brand</th>
@@ -265,13 +236,17 @@ export default function Product() {
 
           <tbody>
             {filteredProducts.map((p, idx) => (
-              <tr key={idx} className="text-start border-b hover:bg-gray-100 cursor-pointer" onClick={() => router.push(`/createproduct?edit=${p.sku}`)}>
+              <tr
+                key={idx}
+                className="text-start border-b hover:bg-gray-100 cursor-pointer"
+                onClick={() => router.push(`/createproduct?edit=${p.sku}`)}
+              >
                 <td className="px-4">{p.sku}</td>
-                <td className="flex items-center justify-start gap-2">
+                <td className="flex items-center gap-2">
                   <img
                     src={p.image ? `http://localhost:5000${p.image}` : "/no-image.png"}
                     alt={p.name}
-                    className="w-12 h-12 m-3 rounded object-cover"
+                    className="w-12 h-12 rounded object-cover"
                   />
                   <span>{p.name}</span>
                 </td>
@@ -294,32 +269,40 @@ export default function Product() {
                     {p.status}
                   </span>
                 </td>
-                <td className="">
+                <td>
                   <button
-                    onClick={(e) => { e.stopPropagation(); router.push(`/productdetail?sku=${p.sku}`); }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      router.push(`/productdetail?sku=${p.sku}`);
+                    }}
                     className="text-purple-500 hover:text-purple-700 mr-3"
-                    title="View"
                   >
                     <Eye size={18} />
                   </button>
                   <button
-                    onClick={(e) => { e.stopPropagation(); router.push(`/createproduct?edit=${p.sku}`); }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      router.push(`/createproduct?edit=${p.sku}`);
+                    }}
                     className="text-blue-500 hover:text-blue-700 mr-3"
-                    title="Edit"
                   >
                     <Edit size={18} />
                   </button>
                   <button
-                    onClick={(e) => { e.stopPropagation(); handleDelete(p.sku); }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDelete(p.sku);
+                    }}
                     className="text-red-500 hover:text-red-700 mr-3"
-                    title="Delete"
                   >
                     <Trash2 size={18} />
                   </button>
                   <button
-                    onClick={(e) => { e.stopPropagation(); router.push("/createproduct"); }}
-                    className="text-[var(--accent)]  hover:text-green-700 mr-3"
-                    title="Add"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      router.push("/createproduct");
+                    }}
+                    className="text-[var(--accent)] hover:text-green-700"
                   >
                     <Plus size={18} />
                   </button>
