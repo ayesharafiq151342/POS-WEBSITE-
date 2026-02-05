@@ -47,7 +47,6 @@ export default function Product() {
     const mappedData: Product[] = data.map((p: any) => ({
   sku: p.sku || "",
   name: p.productName || "N/A",
-
   manufacturer: p.warranty?.manufacturer || "N/A",
   expiryDate: p.warranty?.expiryDate || "N/A",
 
@@ -251,43 +250,7 @@ export default function Product() {
                     />
                   </div>
 
-                  {/* <div className="flex gap-3">
-                    <select
-                      value={manufacturer}
-                      onChange={e => setManufacturer(e.target.value)}
-                      className="py-2 px-3 border rounded-md"
-                    >
-                      <option value="">manufacturer</option>
-                      <option value="Computer">Computer</option>
-                      <option value="Electronics">Electronics</option>
-                      <option value="Shoe">Shoe</option>
-                      <option value="Clothing">Clothing</option>
-                      <option value="Mobile">Mobile</option>
-                    </select>
-
-                    <select
-                      value={expiryDate}
-                      onChange={e => setExpiryDate(e.target.value)}
-                      className="py-2 px-3 border rounded-md"
-                    >
-                      <option value="">expiryDate</option>
-                      <option value="Samsung">Samsung</option>
-                      <option value="Adidas">Adidas</option>
-                      <option value="Nike">Nike</option>
-                      <option value="Apple">Apple</option>
-                    </select>
-
-                    <button
-                      onClick={() => {
-                        setSearchQuery("");
-                       setManufacturer("");
-                        setExpiryDate("");
-                      }}
-                      className="px-3 py-2 border rounded"
-                    >
-                      Clear
-                    </button>
-                  </div> */}
+          
                 </div>
               </th>
             </tr>

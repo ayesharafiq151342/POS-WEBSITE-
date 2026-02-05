@@ -44,7 +44,10 @@ export default function Sidebar({ children }) {
               </a>
             </li> <li>
               <a href="../expire" className="block px-2 py-1 hover:bg-[var(--hover)] rounded">
-             expire Date 
+             Expire Date 
+              </a>
+                 <a href="../lowstocks" className="block px-2 py-1 hover:bg-[var(--hover)] rounded">
+            Low Stoks
               </a>
             </li>
           </ul>
