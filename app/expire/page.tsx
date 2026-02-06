@@ -267,13 +267,14 @@ export default function Product() {
 
           <tbody>
             {filteredProducts.map((p, idx) => (
-              <tr key={idx} className="text-left border-b hover:bg-gray-100 cursor-pointer" onClick={() => handleEditClick(p)}>
+              <tr key={idx} className="text-left border-b bg-white hover:bg-gray-100 cursor-pointer" onClick={() => handleEditClick(p)}>
                 <td className="px-4" >{p.sku}</td>
                 <td className="flex items-center justify-start gap-2">
                   <img
                     src={p.image ? `http://localhost:5000${p.image}` : "/no-image.png"}
                     alt={p.name}
-                    className="w-12 h-12 m-3 rounded object-cover"
+                    className="w-12 h-12 mt-3 mb-3 rounded object-cover"
+
                   />
                   <span>{p.name}</span>
                 </td>

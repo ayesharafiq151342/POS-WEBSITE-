@@ -13,9 +13,9 @@ type Product = {
   sku: string;
   name: string;
   store: string;
-  warehouse: string;
+  wearehouse: string;
   quantity: number;         
-  qtyAlert: number;    // numeric alert threshold
+  qtyAlert: number; // frontend alias for quantityAlert
   category: string;
   image?: string;
 };
@@ -40,13 +40,14 @@ export default function LowStockPage() {
         const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/products`);
         const data = await res.json();
 
+        // Map backend fields to frontend
         const mapped: Product[] = (data as any[]).map(p => ({
           sku: p.sku || "",
           name: p.productName || "N/A",
           store: p.store || "Main Store",
           wearehouse: p.warehouse || "Main Warehouse",
-          qty: Number(p.quantity) || 0,
-          qtyAlert: Number(p.qtyAlert) || LOW_STOCK_LIMIT,
+          quantity: Number(p.quantity) || 0,
+          qtyAlert: Number(p.quantityAlert) || LOW_STOCK_LIMIT,
           category: p.category || "General",
           image: p.images?.[0] || null,
         }));
@@ -73,7 +74,7 @@ export default function LowStockPage() {
 
   // 🔴 Low stock products
   const lowStockProducts = useMemo(
-    () => filteredProducts.filter(p => p.qty <= (p.qtyAlert ?? LOW_STOCK_LIMIT)),
+    () => filteredProducts.filter(p => p.quantity <= (p.qtyAlert ?? LOW_STOCK_LIMIT)),
     [filteredProducts]
   );
 
@@ -102,9 +103,9 @@ export default function LowStockPage() {
             productName: editingProduct.name,
             category: editingProduct.category,
             store: editingProduct.store,
-            warehouse: editingProduct.warehouse,
-            qty: editingProduct.quantity,
-        
+            warehouse: editingProduct.wearehouse,
+            quantity: editingProduct.quantity,       // ✅ matches backend
+            quantityAlert: editingProduct.qtyAlert,  // ✅ matches backend
           }),
         }
       );
@@ -171,7 +172,7 @@ export default function LowStockPage() {
     const doc = new jsPDF();
     doc.text("Low Stock Products", 14, 10);
     const tableColumn = ["SKU", "Name", "Category", "Store", "Wearehouse", "Qty", "Qty Alert"];
-    const tableRows = list.map(p => [p.sku, p.name, p.category, p.store, p.wearehouse, p.qty, p.qtyAlert]);
+    const tableRows = list.map(p => [p.sku, p.name, p.category, p.store, p.wearehouse, p.quantity, p.qtyAlert]);
     autoTable(doc, { head: [tableColumn], body: tableRows, startY: 20 });
     doc.save("LowStock_List.pdf");
   };
@@ -213,7 +214,7 @@ export default function LowStockPage() {
       <div className="overflow-x-auto">
         <table className="w-full text-black border-collapse">
           <thead>
-            <tr className="bg-[var(--accent)] text-white h-10 text-left">
+            <tr className="bg-[var(--accent)]  text-white h-10 text-left">
               <th className="px-4">SKU</th>
               <th>Name</th>
               <th>Category</th>
@@ -228,7 +229,7 @@ export default function LowStockPage() {
             {lowStockProducts.map((p, idx) => (
               <tr
                 key={idx}
-                className={`border-b hover:bg-gray-100 cursor-pointer ${getRowColor(p.qty, p.qtyAlert)}`}
+                className={`border-b  bg-white hover:bg-gray-100 cursor-pointer ${getRowColor(p.quantity, p.qtyAlert)}`}
                 onClick={() => handleEditClick(p)}
               >
                 <td className="px-4">{p.sku}</td>
@@ -243,7 +244,7 @@ export default function LowStockPage() {
                 <td>{p.category}</td>
                 <td>{p.store}</td>
                 <td>{p.wearehouse}</td>
-                <td>{p.qty}</td>
+                <td>{p.quantity}</td>
                 <td>{p.qtyAlert}</td>
                 <td>
                   <button
@@ -328,17 +329,25 @@ export default function LowStockPage() {
 
               {/* Qty */}
               <div>
-                <label className="block font-medium mb-1">Qty*</label>
+                <label className="block font-medium mb-1">Quantity*</label>
                 <input
                   type="number"
-                  value={editingProduct.qty}
-                  onChange={e => setEditingProduct({...editingProduct, qty: Number(e.target.value)})}
+                  value={editingProduct.quantity}
+                  onChange={e => setEditingProduct({...editingProduct, quantity: Number(e.target.value)})}
                   className="w-full border p-2 rounded focus:outline-none focus:ring-2 focus:ring-purple-500"
                 />
               </div>
 
               {/* Qty Alert */}
-         
+              <div>
+                <label className="block font-medium mb-1">Quantity Alert*</label>
+                <input
+                  type="number"
+                  value={editingProduct.qtyAlert}
+                  onChange={e => setEditingProduct({...editingProduct, qtyAlert: Number(e.target.value)})}
+                  className="w-full border p-2 rounded focus:outline-none focus:ring-2 focus:ring-purple-500"
+                />
+              </div>
             </div>
 
             <div className="flex gap-3 mt-6">
@@ -358,7 +367,6 @@ export default function LowStockPage() {
           </div>
         </div>
       )}
-
     </Sidebar>
   );
 }

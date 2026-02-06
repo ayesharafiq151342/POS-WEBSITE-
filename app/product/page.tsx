@@ -166,7 +166,7 @@ export default function Product() {
               <th colSpan={12}>
                 <div className="flex items-center justify-between my-3 gap-4">
                   {/* Search */}
-                  <div className="relative w-64">
+                  <div className="relative w-full">
                     <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
                       🔍
                     </span>
@@ -175,7 +175,7 @@ export default function Product() {
                       placeholder="Search Products..."
                       value={searchQuery}
                       onChange={e => setSearchQuery(e.target.value)}
-                      className="w-full pl-10 pr-3 py-2 border rounded-lg focus:ring-2 focus:ring-purple-600"
+                      className="w-full pl-10 pr-3 py-2 border rounded-lg focus:ring-2 focus:ring-green-700"
                     />
                   </div>
 
@@ -238,7 +238,8 @@ export default function Product() {
             {filteredProducts.map((p, idx) => (
               <tr
                 key={idx}
-                className="text-start border-b hover:bg-gray-100 cursor-pointer"
+                          className={`border-b  bg-white hover:bg-gray-100 cursor-pointer`}
+
                 onClick={() => router.push(`/createproduct?edit=${p.sku}`)}
               >
                 <td className="px-4">{p.sku}</td>
@@ -246,7 +247,8 @@ export default function Product() {
                   <img
                     src={p.image ? `http://localhost:5000${p.image}` : "/no-image.png"}
                     alt={p.name}
-                    className="w-12 h-12 rounded object-cover"
+                                      className="w-12 h-12 mt-3 mb-3 rounded object-cover"
+
                   />
                   <span>{p.name}</span>
                 </td>
