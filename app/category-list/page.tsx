@@ -44,16 +44,15 @@ export default function Product() {
       const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/products`);
       const data = await res.json();
 
-    const mappedData: Product[] = data.map((p: any) => ({
-  sku: p.sku || "",
-  name: p.productName || "N/A",
-  category: p.category || "N/A",
-  subcategory: p.subcategory || "N/A",
-  status: p.status || "Active",
-  manufacturedDate: p.warranty?.manufacturedDate || "N/A",
-  image: p.images?.[0] || null,
-}));
-
+      const mappedData: Product[] = data.map((p: any) => ({
+        sku: p.sku || "",
+        name: p.productName || "N/A",
+        category: p.category || "N/A",
+        subcategory: p.subcategory || "N/A",
+        status: p.status || "Active",
+        manufacturedDate: p.warranty?.manufacturedDate || "N/A",
+        image: p.images?.[0] || null,
+      }));
 
       setProducts(mappedData);
       setFilteredProducts(mappedData);
@@ -68,7 +67,7 @@ export default function Product() {
 
   // 🔹 Search + Filter
   useEffect(() => {
-    const filtered = products.filter(p => {
+    const filtered = products.filter((p) => {
       const matchesSearch =
         searchQuery === "" ||
         p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -78,7 +77,8 @@ export default function Product() {
         category === "" || p.category.toLowerCase() === category.toLowerCase();
 
       const matchesManufacturedDate =
-        manufacturedDate === "" || p.manufacturedDate.toLowerCase() === manufacturedDate.toLowerCase();
+        manufacturedDate === "" ||
+        p.manufacturedDate.toLowerCase() === manufacturedDate.toLowerCase();
 
       return matchesSearch && matchesCategory && matchesManufacturedDate;
     });
@@ -94,7 +94,7 @@ export default function Product() {
           method: "DELETE",
         });
         if (response.ok) {
-          const updated = products.filter(p => p.sku !== sku);
+          const updated = products.filter((p) => p.sku !== sku);
           setProducts(updated);
           setFilteredProducts(updated);
         } else {
@@ -124,23 +124,26 @@ export default function Product() {
     if (!editingProduct) return;
 
     try {
-const response = await fetch(`http://localhost:5000/products/${editingProduct.sku}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          productName: editName,
-          sku: editSku,
-          category: editCategory,
-          subcategory: editSubcategory,
-          status: editStatus,
-          warranty: {
-            manufacturedDate: editManufacturedDate,
-          },
-        }),
-      });
+      const response = await fetch(
+        `http://localhost:5000/products/${editingProduct.sku}`,
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            productName: editName,
+            sku: editSku,
+            category: editCategory,
+            subcategory: editSubcategory,
+            status: editStatus,
+            warranty: {
+              manufacturedDate: editManufacturedDate,
+            },
+          }),
+        }
+      );
 
       if (response.ok) {
-        const updated = products.map(p =>
+        const updated = products.map((p) =>
           p.sku === editingProduct.sku
             ? {
                 ...p,
@@ -184,8 +187,22 @@ const response = await fetch(`http://localhost:5000/products/${editingProduct.sk
     const doc = new jsPDF();
     doc.text("Product List", 14, 10);
 
-    const tableColumn = ["SKU", "Name", "Category", "Subcategory", "Status", "Manufactured Date"];
-    const tableRows = list.map(p => [p.sku, p.name, p.category, p.subcategory, p.status, p.manufacturedDate]);
+    const tableColumn = [
+      "SKU",
+      "Name",
+      "Category",
+      "Subcategory",
+      "Status",
+      "Manufactured Date",
+    ];
+    const tableRows = list.map((p) => [
+      p.sku,
+      p.name,
+      p.category,
+      p.subcategory,
+      p.status,
+      p.manufacturedDate,
+    ]);
 
     autoTable(doc, {
       head: [tableColumn],
@@ -195,6 +212,18 @@ const response = await fetch(`http://localhost:5000/products/${editingProduct.sk
 
     doc.save("Products_List.pdf");
   };
+
+  // 🔹 Lock scroll when modal is open
+  useEffect(() => {
+    if (showEditModal) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "auto";
+    }
+    return () => {
+      document.body.style.overflow = "auto";
+    };
+  }, [showEditModal]);
 
   return (
     <Sidebar>
@@ -210,11 +239,17 @@ const response = await fetch(`http://localhost:5000/products/${editingProduct.sk
         </div>
 
         <div className="w-full md:w-1/2 flex justify-end items-center gap-3">
-          <button onClick={() => exportToExcel(filteredProducts)} className="border px-4 py-2 rounded">
+          <button
+            onClick={() => exportToExcel(filteredProducts)}
+            className="border px-4 py-2 rounded"
+          >
             <FileSpreadsheet size={18} className="text-green-600" />
           </button>
 
-          <button onClick={() => exportToPDF(filteredProducts)} className="border px-4 py-2 rounded ml-2">
+          <button
+            onClick={() => exportToPDF(filteredProducts)}
+            className="border px-4 py-2 rounded ml-2"
+          >
             <FileText size={18} className="text-red-600" />
           </button>
         </div>
@@ -235,7 +270,7 @@ const response = await fetch(`http://localhost:5000/products/${editingProduct.sk
                       type="text"
                       placeholder="Search Products..."
                       value={searchQuery}
-                      onChange={e => setSearchQuery(e.target.value)}
+                      onChange={(e) => setSearchQuery(e.target.value)}
                       className="w-full pl-10 pr-3 py-2 border rounded-lg focus:ring-2 focus:ring-purple-600"
                     />
                   </div>
@@ -244,6 +279,7 @@ const response = await fetch(`http://localhost:5000/products/${editingProduct.sk
             </tr>
 
             <tr className="bg-[var(--accent)] text-white h-10 text-left">
+              <th className="pl-9">Product name</th>
               <th>Category</th>
               <th>Subcategory</th>
               <th>Status</th>
@@ -259,20 +295,47 @@ const response = await fetch(`http://localhost:5000/products/${editingProduct.sk
                 className="text-left border-b bg-white hover:bg-gray-100 cursor-pointer"
                 onClick={() => handleEditClick(p)}
               >
+                <td className="flex items-center justify-start pl-9 gap-2">
+                  <img
+                    src={p.image ? `http://localhost:5000${p.image}` : "/no-image.png"}
+                    alt={p.name}
+                    className="w-12 h-12 mt-3 mb-3 rounded object-cover"
+                  />
+                  <span>{p.name}</span>
+                </td>
                 <td>{p.category}</td>
                 <td>{p.subcategory}</td>
-                <td>{p.status}</td>
+
+                <td>
+                  <span
+                    className={`px-3 py-1 rounded-full text-xs font-semibold text-white ${
+                      p.status?.toLowerCase() === "active"
+                        ? "bg-green-500"
+                        : "bg-red-500"
+                    }`}
+                  >
+                    {p.status}
+                  </span>
+                </td>
+
                 <td>{p.manufacturedDate}</td>
+
                 <td>
                   <button
-                    onClick={e => { e.stopPropagation(); router.push(`/productdetail?sku=${p.sku}`); }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      router.push(`/productdetail?sku=${p.sku}`);
+                    }}
                     className="text-purple-500 hover:text-purple-700 mr-3"
                     title="View"
                   >
                     <Eye size={18} />
                   </button>
                   <button
-                    onClick={e => { e.stopPropagation(); handleDelete(p.sku); }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDelete(p.sku);
+                    }}
                     className="text-red-500 hover:text-red-700 mr-3"
                     title="Delete"
                   >
@@ -287,37 +350,26 @@ const response = await fetch(`http://localhost:5000/products/${editingProduct.sk
 
       {/* Edit Modal */}
       {showEditModal && editingProduct && (
-        <div className="fixed inset-0 bg-gray-900 bg-opacity-50 backdrop-blur-sm flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-96 shadow-lg">
+        <div
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[9999]"
+          onClick={() => setShowEditModal(false)}
+        >
+          <div
+            className="bg-white rounded-lg p-6 w-96 shadow-xl"
+            onClick={(e) => e.stopPropagation()}
+          >
             <h2 className="text-2xl font-bold mb-4">Edit Product</h2>
             <div className="space-y-4">
-              <div>
-                <label className="block font-medium mb-1">SKU</label>
-                <input
-                  type="text"
-                  value={editSku}
-                  onChange={e => setEditSku(e.target.value)}
-                  className="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
-                />
-              </div>
-
-              <div>
-                <label className="block font-medium mb-1">Product Name</label>
-                <input
-                  type="text"
-                  value={editName}
-                  onChange={e => setEditName(e.target.value)}
-                  className="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
-                />
-              </div>
+           
+            
 
               <div>
                 <label className="block font-medium mb-1">Category</label>
                 <input
                   type="text"
                   value={editCategory}
-                  onChange={e => setEditCategory(e.target.value)}
-                  className="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  onChange={(e) => setEditCategory(e.target.value)}
+                  className="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-[var(--accent)]"
                 />
               </div>
 
@@ -326,8 +378,8 @@ const response = await fetch(`http://localhost:5000/products/${editingProduct.sk
                 <input
                   type="text"
                   value={editSubcategory}
-                  onChange={e => setEditSubcategory(e.target.value)}
-                  className="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  onChange={(e) => setEditSubcategory(e.target.value)}
+                  className="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-[var(--accent)]"
                 />
               </div>
 
@@ -335,8 +387,8 @@ const response = await fetch(`http://localhost:5000/products/${editingProduct.sk
                 <label className="block font-medium mb-1">Status</label>
                 <select
                   value={editStatus}
-                  onChange={e => setEditStatus(e.target.value)}
-                  className="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  onChange={(e) => setEditStatus(e.target.value)}
+                  className="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-[var(--accent)]"
                 >
                   <option value="Active">Active</option>
                   <option value="Inactive">Inactive</option>
@@ -348,8 +400,8 @@ const response = await fetch(`http://localhost:5000/products/${editingProduct.sk
                 <input
                   type="date"
                   value={editManufacturedDate}
-                  onChange={e => setEditManufacturedDate(e.target.value)}
-                  className="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  onChange={(e) => setEditManufacturedDate(e.target.value)}
+                  className="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-[var(--accent)]"
                 />
               </div>
             </div>
@@ -357,7 +409,7 @@ const response = await fetch(`http://localhost:5000/products/${editingProduct.sk
             <div className="flex gap-3 mt-6">
               <button
                 onClick={handleEditSave}
-                className="flex-1 bg-green-500 hover:bg-green-600 text-white rounded-md py-2 font-medium"
+                className="flex-1 bg-[var(--accent)] hover:bg-[var(--hover)] text-white rounded-md py-2 font-medium"
               >
                 Save
               </button>

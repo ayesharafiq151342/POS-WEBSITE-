@@ -7,14 +7,13 @@ import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
-import { FileSpreadsheet, FileText, Edit, Trash2, Plus, Eye } from "lucide-react";
+import { FileSpreadsheet, FileText, Trash2, Eye } from "lucide-react";
 
 type Product = {
   sku: string;
   name: string;
-   manufacturer: string;
-  expiryDate: string
- 
+  manufacturer: string;
+  expiryDate: string;
   image?: string;
 };
 
@@ -28,9 +27,7 @@ export default function Product() {
   const [manufacturer, setManufacturer] = useState("");
   const [expiryDate, setExpiryDate] = useState("");
 
-  const [uploadedImages, setUploadedImages] = useState<string[]>([]);
-
-  // Modal state
+  // Modal states
   const [showEditModal, setShowEditModal] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [editName, setEditName] = useState("");
@@ -38,20 +35,19 @@ export default function Product() {
   const [editSku, setEditSku] = useState("");
   const [editExpiryDate, setEditExpiryDate] = useState("");
 
-  // 🔹 Fetch Products from backend
+  // 🔹 Fetch Products
   const fetchProducts = async () => {
     try {
       const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/products`);
       const data = await res.json();
 
-    const mappedData: Product[] = data.map((p: any) => ({
-  sku: p.sku || "",
-  name: p.productName || "N/A",
-  manufacturer: p.warranty?.manufacturer || "N/A",
-  expiryDate: p.warranty?.expiryDate || "N/A",
-
-  image: p.images?.[0] || null,
-}));
+      const mappedData: Product[] = data.map((p: any) => ({
+        sku: p.sku || "",
+        name: p.productName || "N/A",
+        manufacturer: p.warranty?.manufacturer || "N/A",
+        expiryDate: p.warranty?.expiryDate || "N/A",
+        image: p.images?.[0] || null,
+      }));
 
       setProducts(mappedData);
       setFilteredProducts(mappedData);
@@ -60,39 +56,25 @@ export default function Product() {
     }
   };
 
-  // 🔹 Handle Image Upload
-  const handleUpload = async (files: FileList) => {
-    const formData = new FormData();
-    Array.from(files).forEach(file => formData.append("images", file));
-
-    const res = await fetch("http://localhost:5000/upload", {
-      method: "POST",
-      body: formData,
-    });
-
-    const data = await res.json();
-    setUploadedImages(data.urls);
-  };
-
   useEffect(() => {
     fetchProducts();
   }, []);
 
   // 🔹 Search + Filter
   useEffect(() => {
-    const filtered = products.filter(p => {
+    const filtered = products.filter((p) => {
       const matchesSearch =
         searchQuery === "" ||
         p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         p.sku.toLowerCase().includes(searchQuery.toLowerCase());
 
-      const matchesmanufacturer =
+      const matchesManufacturer =
         manufacturer === "" || p.manufacturer.toLowerCase() === manufacturer.toLowerCase();
 
-      const matchesexpiryDate =
+      const matchesExpiryDate =
         expiryDate === "" || p.expiryDate.toLowerCase() === expiryDate.toLowerCase();
 
-      return matchesSearch && matchesmanufacturer && matchesexpiryDate;
+      return matchesSearch && matchesManufacturer && matchesExpiryDate;
     });
 
     setFilteredProducts(filtered);
@@ -106,7 +88,7 @@ export default function Product() {
           method: "DELETE",
         });
         if (response.ok) {
-          const updated = products.filter(p => p.sku !== sku);
+          const updated = products.filter((p) => p.sku !== sku);
           setProducts(updated);
           setFilteredProducts(updated);
         } else {
@@ -119,7 +101,7 @@ export default function Product() {
     }
   };
 
-  // 🔹 Handle Edit Modal Open
+  // 🔹 Open Edit Modal
   const handleEditClick = (product: Product) => {
     setEditingProduct(product);
     setEditName(product.name);
@@ -129,7 +111,7 @@ export default function Product() {
     setShowEditModal(true);
   };
 
-  // 🔹 Handle Edit Save
+  // 🔹 Save Edited Product
   const handleEditSave = async () => {
     if (!editingProduct) return;
 
@@ -148,8 +130,7 @@ export default function Product() {
       });
 
       if (response.ok) {
-        // Update local state
-        const updated = products.map(p =>
+        const updated = products.map((p) =>
           p.sku === editingProduct.sku
             ? { ...p, name: editName, sku: editSku, manufacturer: editManufacturer, expiryDate: editExpiryDate }
             : p
@@ -168,10 +149,10 @@ export default function Product() {
   };
 
   // 🔹 Export Excel
-  const exportToExcel = (Expire: Product[]) => {
-    const worksheet = XLSX.utils.json_to_sheet(products);
+  const exportToExcel = (list: Product[]) => {
+    const worksheet = XLSX.utils.json_to_sheet(list);
     const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Expire");
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Expire List");
 
     const excelBuffer = XLSX.write(workbook, { bookType: "xlsx", type: "array" });
     const data = new Blob([excelBuffer], {
@@ -181,12 +162,12 @@ export default function Product() {
   };
 
   // 🔹 Export PDF
-  const exportToPDF = (Expire: Product[]) => {
+  const exportToPDF = (list: Product[]) => {
     const doc = new jsPDF();
-    doc.text("Expire  List", 14, 10);
+    doc.text("Expire List", 14, 10);
 
-    const tableColumn = ["SKU", "Name", "Manufacturer", "Expiredate", ];
-    const tableRows = Expire.map(p => [p.sku, p.name, p.manufacturer,p.expiryDate ]);
+    const tableColumn = ["SKU", "Name", "Manufacturer", "Expiry Date"];
+    const tableRows = list.map((p) => [p.sku, p.name, p.manufacturer, p.expiryDate]);
 
     autoTable(doc, {
       head: [tableColumn],
@@ -194,8 +175,20 @@ export default function Product() {
       startY: 20,
     });
 
-    doc.save("Expire_list.pdf");
+    doc.save("Expire_List.pdf");
   };
+
+  // 🔹 Lock scroll when modal is open
+  useEffect(() => {
+    if (showEditModal) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "auto";
+    }
+    return () => {
+      document.body.style.overflow = "auto";
+    };
+  }, [showEditModal]);
 
   return (
     <Sidebar>
@@ -207,7 +200,7 @@ export default function Product() {
       <div className="flex flex-col md:flex-row gap-4 mb-6">
         <div className="w-full md:w-1/2">
           <h2 className="font-bold text-lg">Expire List</h2>
-          <h3 className="text-sm text-gray-600">Manage Your Expire date</h3>
+          <h3 className="text-sm text-gray-600">Manage Products Expiry Dates</h3>
         </div>
 
         <div className="w-full md:w-1/2 flex justify-end items-center gap-3">
@@ -224,8 +217,6 @@ export default function Product() {
           >
             <FileText size={18} className="text-red-600" />
           </button>
-
-     
         </div>
       </div>
 
@@ -236,7 +227,6 @@ export default function Product() {
             <tr>
               <th colSpan={12}>
                 <div className="flex items-center justify-between my-3 gap-4">
-                  {/* Search */}
                   <div className="relative w-64">
                     <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
                       🔍
@@ -245,12 +235,10 @@ export default function Product() {
                       type="text"
                       placeholder="Search Products..."
                       value={searchQuery}
-                      onChange={e => setSearchQuery(e.target.value)}
+                      onChange={(e) => setSearchQuery(e.target.value)}
                       className="w-full pl-10 pr-3 py-2 border rounded-lg focus:ring-2 focus:ring-purple-600"
                     />
                   </div>
-
-          
                 </div>
               </th>
             </tr>
@@ -259,46 +247,50 @@ export default function Product() {
               <th className="px-4">SKU</th>
               <th>Name</th>
               <th>Manufacturer</th>
-              <th>ExpiryDate</th>
-             
+              <th>Expiry Date</th>
               <th>Actions</th>
             </tr>
           </thead>
 
           <tbody>
             {filteredProducts.map((p, idx) => (
-              <tr key={idx} className="text-left border-b bg-white hover:bg-gray-100 cursor-pointer" onClick={() => handleEditClick(p)}>
-                <td className="px-4" >{p.sku}</td>
+              <tr
+                key={idx}
+                className="text-left border-b bg-white hover:bg-gray-100 cursor-pointer"
+                onClick={() => handleEditClick(p)}
+              >
+                <td className="px-4">{p.sku}</td>
                 <td className="flex items-center justify-start gap-2">
                   <img
                     src={p.image ? `http://localhost:5000${p.image}` : "/no-image.png"}
                     alt={p.name}
                     className="w-12 h-12 mt-3 mb-3 rounded object-cover"
-
                   />
                   <span>{p.name}</span>
                 </td>
                 <td>{p.manufacturer}</td>
                 <td>{p.expiryDate}</td>
-              
-              
-                <td className="">
+                <td>
                   <button
-                    onClick={(e) => { e.stopPropagation(); router.push(`/productdetail?sku=${p.sku}`); }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      router.push(`/productdetail?sku=${p.sku}`);
+                    }}
                     className="text-purple-500 hover:text-purple-700 mr-3"
                     title="View"
                   >
                     <Eye size={18} />
                   </button>
-               
                   <button
-                    onClick={(e) => { e.stopPropagation(); handleDelete(p.sku); }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDelete(p.sku);
+                    }}
                     className="text-red-500 hover:text-red-700 mr-3"
                     title="Delete"
                   >
                     <Trash2 size={18} />
                   </button>
-              
                 </td>
               </tr>
             ))}
@@ -308,10 +300,15 @@ export default function Product() {
 
       {/* Edit Modal */}
       {showEditModal && editingProduct && (
-        <div className="fixed inset-0 bg-gray-900 bg-opacity-50 backdrop-blur-sm flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-96 shadow-lg">
+        <div
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[9999]"
+          onClick={() => setShowEditModal(false)}
+        >
+          <div
+            className="bg-white rounded-lg p-6 w-96 shadow-xl"
+            onClick={(e) => e.stopPropagation()}
+          >
             <h2 className="text-2xl font-bold mb-4">Edit Product</h2>
-            
             <div className="space-y-4">
               <div>
                 <label className="block font-medium mb-1">SKU</label>

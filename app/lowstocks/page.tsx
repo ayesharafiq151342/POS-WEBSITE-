@@ -1,21 +1,21 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import Sidebar from "../components/sidebar/page";
-import { Eye, FileSpreadsheet, FileText, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
+import { Eye, FileSpreadsheet, FileText, Trash2 } from "lucide-react";
 
 type Product = {
   sku: string;
   name: string;
   store: string;
-  wearehouse: string;
-  quantity: number;         
-  qtyAlert: number; // frontend alias for quantityAlert
+  warehouse: string;
+  quantity: number;
+  qtyAlert: number;
   category: string;
   image?: string;
 };
@@ -29,66 +29,65 @@ export default function LowStockPage() {
   const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
 
-  // Edit modal state
+  // Edit Modal state
   const [showEditModal, setShowEditModal] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
 
   // 🔹 Fetch products
+  const fetchProducts = async () => {
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/products`);
+      const data = await res.json();
+
+      const mappedData: Product[] = data.map((p: any) => ({
+        sku: p.sku || "",
+        name: p.productName || "N/A",
+        store: p.store || "Main Store",
+        warehouse: p.warehouse || "Main Warehouse",
+        quantity: Number(p.quantity) || 0,
+        qtyAlert: Number(p.quantityAlert) || LOW_STOCK_LIMIT,
+        category: p.category || "General",
+        image: p.images?.[0] || null,
+      }));
+
+      setProducts(mappedData);
+      setFilteredProducts(mappedData);
+    } catch (err) {
+      console.error("Error fetching products:", err);
+    }
+  };
+
   useEffect(() => {
-    const loadProducts = async () => {
-      try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/products`);
-        const data = await res.json();
-
-        // Map backend fields to frontend
-        const mapped: Product[] = (data as any[]).map(p => ({
-          sku: p.sku || "",
-          name: p.productName || "N/A",
-          store: p.store || "Main Store",
-          wearehouse: p.warehouse || "Main Warehouse",
-          quantity: Number(p.quantity) || 0,
-          qtyAlert: Number(p.quantityAlert) || LOW_STOCK_LIMIT,
-          category: p.category || "General",
-          image: p.images?.[0] || null,
-        }));
-
-        setProducts(mapped);
-        setFilteredProducts(mapped);
-      } catch (err) {
-        console.error("Fetch error:", err);
-      }
-    };
-    loadProducts();
+    fetchProducts();
   }, []);
 
-  // 🔹 Search filter
+  // 🔹 Filter products based on search
   useEffect(() => {
-    const filtered = products.filter(p =>
-      p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      p.sku.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      p.store.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      p.category.toLowerCase().includes(searchQuery.toLowerCase())
+    const filtered = products.filter(
+      (p) =>
+        p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        p.sku.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        p.store.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        p.category.toLowerCase().includes(searchQuery.toLowerCase())
     );
     setFilteredProducts(filtered);
   }, [searchQuery, products]);
 
-  // 🔴 Low stock products
-  const lowStockProducts = useMemo(
-    () => filteredProducts.filter(p => p.quantity <= (p.qtyAlert ?? LOW_STOCK_LIMIT)),
-    [filteredProducts]
+  // 🔹 Low stock products
+  const lowStockProducts = filteredProducts.filter(
+    (p) => p.quantity <= (p.qtyAlert ?? LOW_STOCK_LIMIT)
   );
 
-  // Row color
-  const getRowColor = (qty: number, qtyAlert: number) =>
-    qty <= qtyAlert ? "bg-red-100" : "";
+  // 🔹 Row color for low stock
+  const getRowColor = (qty: number, qtyAlert: number) => (qty <= qtyAlert ? "bg-red-100" : "");
 
-  // ✏️ Open edit modal
+  // ✏️ Open Edit Modal
   const handleEditClick = (product: Product) => {
     setEditingProduct(product);
     setShowEditModal(true);
   };
 
-  // ✏️ Save edit
+  // ✏️ Save edits
   const handleEditSave = async () => {
     if (!editingProduct) return;
 
@@ -103,34 +102,32 @@ export default function LowStockPage() {
             productName: editingProduct.name,
             category: editingProduct.category,
             store: editingProduct.store,
-            warehouse: editingProduct.wearehouse,
-            quantity: editingProduct.quantity,       // ✅ matches backend
-            quantityAlert: editingProduct.qtyAlert,  // ✅ matches backend
+            warehouse: editingProduct.warehouse,
+            quantity: editingProduct.quantity,
+            quantityAlert: editingProduct.qtyAlert,
           }),
         }
       );
 
       if (res.ok) {
         // Update local state
-        setProducts(prev =>
-          prev.map(p =>
-            p.sku === editingProduct.sku ? { ...editingProduct } : p
-          )
+        setProducts((prev) =>
+          prev.map((p) => (p.sku === editingProduct.sku ? { ...editingProduct } : p))
         );
-        setFilteredProducts(prev =>
-          prev.map(p =>
-            p.sku === editingProduct.sku ? { ...editingProduct } : p
-          )
+        setFilteredProducts((prev) =>
+          prev.map((p) => (p.sku === editingProduct.sku ? { ...editingProduct } : p))
         );
 
         setShowEditModal(false);
         setEditingProduct(null);
         alert("Product updated successfully!");
       } else {
+        const errMsg = await res.text();
+        console.error("Update failed:", errMsg);
         alert("Failed to update product");
       }
     } catch (err) {
-      console.error("Update error:", err);
+      console.error("Error updating product:", err);
       alert("Error updating product");
     }
   };
@@ -138,14 +135,15 @@ export default function LowStockPage() {
   // 🗑 Delete product
   const handleDelete = async (sku: string) => {
     if (!confirm("Are you sure you want to delete this product?")) return;
+
     try {
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/products/${sku}`,
-        { method: "DELETE" }
-      );
+      const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/products/${sku}`, {
+        method: "DELETE",
+      });
       if (res.ok) {
-        setProducts(prev => prev.filter(p => p.sku !== sku));
-        setFilteredProducts(prev => prev.filter(p => p.sku !== sku));
+        const updated = products.filter((p) => p.sku !== sku);
+        setProducts(updated);
+        setFilteredProducts(updated);
       } else {
         alert("Failed to delete product");
       }
@@ -155,24 +153,22 @@ export default function LowStockPage() {
     }
   };
 
-  // 🔹 Export Excel
+  // 🔹 Export to Excel
   const exportToExcel = (list: Product[]) => {
     const worksheet = XLSX.utils.json_to_sheet(list);
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, "LowStock");
     const excelBuffer = XLSX.write(workbook, { bookType: "xlsx", type: "array" });
-    const data = new Blob([excelBuffer], {
-      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-    });
+    const data = new Blob([excelBuffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
     saveAs(data, "LowStock_List.xlsx");
   };
 
-  // 🔹 Export PDF
+  // 🔹 Export to PDF
   const exportToPDF = (list: Product[]) => {
     const doc = new jsPDF();
     doc.text("Low Stock Products", 14, 10);
-    const tableColumn = ["SKU", "Name", "Category", "Store", "Wearehouse", "Qty", "Qty Alert"];
-    const tableRows = list.map(p => [p.sku, p.name, p.category, p.store, p.wearehouse, p.quantity, p.qtyAlert]);
+    const tableColumn = ["SKU", "Name", "Category", "Store", "Warehouse", "Qty", "Qty Alert"];
+    const tableRows = list.map((p) => [p.sku, p.name, p.category, p.store, p.warehouse, p.quantity, p.qtyAlert]);
     autoTable(doc, { head: [tableColumn], body: tableRows, startY: 20 });
     doc.save("LowStock_List.pdf");
   };
@@ -205,7 +201,7 @@ export default function LowStockPage() {
           type="text"
           placeholder="Search by name, SKU, category, or store..."
           value={searchQuery}
-          onChange={e => setSearchQuery(e.target.value)}
+          onChange={(e) => setSearchQuery(e.target.value)}
           className="w-full border rounded-lg p-2"
         />
       </div>
@@ -214,12 +210,12 @@ export default function LowStockPage() {
       <div className="overflow-x-auto">
         <table className="w-full text-black border-collapse">
           <thead>
-            <tr className="bg-[var(--accent)]  text-white h-10 text-left">
+            <tr className="bg-[var(--accent)] text-white h-10 text-left">
               <th className="px-4">SKU</th>
               <th>Name</th>
               <th>Category</th>
               <th>Store</th>
-              <th>Wearehouse</th>
+              <th>Warehouse</th>
               <th>Qty</th>
               <th>Qty Alert</th>
               <th>Actions</th>
@@ -229,32 +225,32 @@ export default function LowStockPage() {
             {lowStockProducts.map((p, idx) => (
               <tr
                 key={idx}
-                className={`border-b  bg-white hover:bg-gray-100 cursor-pointer ${getRowColor(p.quantity, p.qtyAlert)}`}
+                className={`border-b bg-white hover:bg-gray-100 cursor-pointer ${getRowColor(p.quantity, p.qtyAlert)}`}
                 onClick={() => handleEditClick(p)}
               >
                 <td className="px-4">{p.sku}</td>
-                <td className="flex items-center justify-start gap-2 ">
+                <td className="flex items-center gap-2">
                   <img
                     src={p.image ? `http://localhost:5000${p.image}` : "/no-image.png"}
                     alt={p.name}
-                    className="w-12 h-12 mt-3 mb-3 rounded object-cover"
+                    className="w-12 h-12 rounded object-cover"
                   />
-                  <span>{p.name}</span>
+                  {p.name}
                 </td>
                 <td>{p.category}</td>
                 <td>{p.store}</td>
-                <td>{p.wearehouse}</td>
+                <td>{p.warehouse}</td>
                 <td>{p.quantity}</td>
                 <td>{p.qtyAlert}</td>
                 <td>
                   <button
-                    onClick={e => { e.stopPropagation(); router.push(`/productdetail?sku=${p.sku}`); }}
+                    onClick={(e) => { e.stopPropagation(); router.push(`/productdetail?sku=${p.sku}`); }}
                     className="text-purple-500 hover:text-purple-700 mr-3"
                   >
                     <Eye size={18} />
                   </button>
                   <button
-                    onClick={e => { e.stopPropagation(); handleDelete(p.sku); }}
+                    onClick={(e) => { e.stopPropagation(); handleDelete(p.sku); }}
                     className="text-red-500 hover:text-red-700"
                   >
                     <Trash2 size={18} />
@@ -272,79 +268,73 @@ export default function LowStockPage() {
           <div className="bg-white rounded-lg p-6 w-96 shadow-lg">
             <h2 className="text-2xl font-bold mb-4">Edit Product</h2>
             <div className="space-y-4">
-              {/* SKU */}
+              {/** SKU **/}
               <div>
-                <label className="block font-medium mb-1">SKU*</label>
+                <label className="block font-medium mb-1">SKU</label>
                 <input
                   type="text"
                   value={editingProduct.sku}
-                  onChange={e => setEditingProduct({...editingProduct, sku: e.target.value})}
+                  onChange={(e) => setEditingProduct({ ...editingProduct, sku: e.target.value })}
                   className="w-full border p-2 rounded focus:outline-none focus:ring-2 focus:ring-purple-500"
                 />
               </div>
-
-              {/* Product Name */}
+              {/** Name **/}
               <div>
-                <label className="block font-medium mb-1">Product Name*</label>
+                <label className="block font-medium mb-1">Product Name</label>
                 <input
                   type="text"
                   value={editingProduct.name}
-                  onChange={e => setEditingProduct({...editingProduct, name: e.target.value})}
+                  onChange={(e) => setEditingProduct({ ...editingProduct, name: e.target.value })}
                   className="w-full border p-2 rounded focus:outline-none focus:ring-2 focus:ring-purple-500"
                 />
               </div>
-
-              {/* Category */}
+              {/** Category **/}
               <div>
-                <label className="block font-medium mb-1">Category*</label>
+                <label className="block font-medium mb-1">Category</label>
                 <input
                   type="text"
                   value={editingProduct.category}
-                  onChange={e => setEditingProduct({...editingProduct, category: e.target.value})}
+                  onChange={(e) => setEditingProduct({ ...editingProduct, category: e.target.value })}
                   className="w-full border p-2 rounded focus:outline-none focus:ring-2 focus:ring-purple-500"
                 />
               </div>
-
-              {/* Store */}
+              {/** Store **/}
               <div>
-                <label className="block font-medium mb-1">Store*</label>
+                <label className="block font-medium mb-1">Store</label>
                 <input
                   type="text"
                   value={editingProduct.store}
-                  onChange={e => setEditingProduct({...editingProduct, store: e.target.value})}
+                  onChange={(e) => setEditingProduct({ ...editingProduct, store: e.target.value })}
                   className="w-full border p-2 rounded focus:outline-none focus:ring-2 focus:ring-purple-500"
                 />
               </div>
-
-              {/* Warehouse */}
+              {/** Warehouse **/}
               <div>
-                <label className="block font-medium mb-1">Warehouse*</label>
+                <label className="block font-medium mb-1">Warehouse</label>
                 <input
                   type="text"
-                  value={editingProduct.wearehouse}
-                  onChange={e => setEditingProduct({...editingProduct, wearehouse: e.target.value})}
+                  value={editingProduct.warehouse}
+                  onChange={(e) => setEditingProduct({ ...editingProduct, warehouse: e.target.value })}
                   className="w-full border p-2 rounded focus:outline-none focus:ring-2 focus:ring-purple-500"
                 />
               </div>
-
-              {/* Qty */}
+              {/** Quantity **/}
               <div>
-                <label className="block font-medium mb-1">Quantity*</label>
+                <label className="block font-medium mb-1">Quantity</label>
                 <input
                   type="number"
                   value={editingProduct.quantity}
-                  onChange={e => setEditingProduct({...editingProduct, quantity: Number(e.target.value)})}
+                  onChange={(e) => setEditingProduct({ ...editingProduct, quantity: Number(e.target.value) })}
                   className="w-full border p-2 rounded focus:outline-none focus:ring-2 focus:ring-purple-500"
                 />
               </div>
-
-              {/* Qty Alert */}
+              {/** Quantity Alert **/}
               <div>
-                <label className="block font-medium mb-1">Quantity Alert*</label>
+                <label className="block font-medium mb-1">Quantity Alert</label>
                 <input
                   type="number"
                   value={editingProduct.qtyAlert}
-                  onChange={e => setEditingProduct({...editingProduct, qtyAlert: Number(e.target.value)})}
+                  onChange={(e) => setEditingProduct({ ...editingProduct, qtyAlert: Number(e.target.value) })}
                   className="w-full border p-2 rounded focus:outline-none focus:ring-2 focus:ring-purple-500"
                 />
               </div>
