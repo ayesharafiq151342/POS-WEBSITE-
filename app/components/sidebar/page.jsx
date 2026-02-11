@@ -47,6 +47,13 @@ export default function Sidebar({ children }) {
               >
                 Dashboard
               </Link>
+            </li>   <li>
+              <Link
+                href="/AllProducts"
+                className="block px-2 py-1 hover:bg-[var(--accent)] hover:text-white rounded"
+              >
+                All Product
+              </Link>
             </li>
             <li>
               <Link

@@ -440,6 +440,8 @@ export default function CreateProduct() {
                 <option>L</option>
                 <option>dz</option>
                 <option>bx</option>
+                <option>piece</option>
+
               </select>
             </div>
           </div>
