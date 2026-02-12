@@ -147,21 +147,33 @@ export default function LowStockPage() {
     const doc = new jsPDF();
     doc.text("Low Stock Products", 14, 10);
     autoTable(doc, {
-      startY: 20,
+      startY: 20, theme: "grid", // optional
+    
+        headStyles: {
+          fillColor: [30, 138, 138], // Purple (RGB)
+          textColor: 255, // White text
+          halign: "center",
+        },
+    
+        styles: {
+          fontSize: 9,
+          cellPadding: 3,
+        },
       head: [["SKU", "Name", "Category", "Brand", "Price", "Qty", "Status"]],
       body: data.map((p) => [p.sku, p.productName, p.category, p.brand, `$${p.price}`, p.quantity, p.status]),
     });
+    
     doc.save("LowStockProducts.pdf");
   };
 
   return (
     <Sidebar>
-      <h1 className="text-3xl font-bold mb-4 bg-yellow-500 text-white p-3 rounded">Low Stock Products</h1>
+      <h1 className="text-3xl font-bold mb-4 bg-[var(--accent)] text-white p-3 rounded">Low Stock Products</h1>
 
       {/* Actions */}
       <div className="flex flex-col md:flex-row gap-4 mb-6">
         <div className="w-full md:w-1/2">
-          <h2 className="font-bold text-lg">Product List</h2>
+          <h2 className="font-bold text-lg">Low Stock List</h2>
           <h3 className="text-sm text-gray-600">Manage Low Stock Products</h3>
         </div>
 

@@ -117,18 +117,61 @@ export default function ProductsDashboard() {
     );
   };
 
-  const exportToPDF = (data: Product[]) => {
-    const doc = new jsPDF();
-    doc.text("Product List", 14, 10);
+const exportToPDF = (data: Product[]) => {
+  const doc = new jsPDF();
 
-    autoTable(doc, {
-      startY: 20,
-      head: [["SKU", "Name", "Category", "Price", "Qty", "Status"]],
-      body: data.map((p) => [p.sku, p.productName, p.category, `$${p.price}`, p.quantity, p.status]),
-    });
+  // Title
+  doc.setFontSize(16);
+  doc.setTextColor(40);
+  doc.text("Product List", 14, 12);
 
-    doc.save("Products.pdf");
-  };
+  // Prepare table data
+  const tableColumn = ["SKU", "Name", "Category", "Price", "Qty", "Status"];
+  const tableRows = data.map((p) => [
+    p.sku,
+    p.productName,
+    p.category,
+    `$${p.price}`,
+    p.quantity,
+    p.status,
+  ]);
+
+  autoTable(doc, {
+    startY: 20,
+    head: [tableColumn],
+    body: tableRows,
+    theme: "grid",
+
+    // Header styling
+    headStyles: {
+       fillColor: [30, 138, 138], // green (RGB)
+
+      textColor: 255,
+      fontStyle: "bold",
+      halign: "center",
+    },
+
+    // Body styling
+    styles: {
+      fontSize: 10,
+      cellPadding: 3,
+    },
+
+    // Alternate row shading
+    alternateRowStyles: {
+      fillColor: [245, 245, 245], // Light gray for alternate rows
+    },
+
+    columnStyles: {
+      0: { halign: "center" }, // SKU
+      3: { halign: "right" },  // Price
+      4: { halign: "center" }, // Qty
+      5: { halign: "center" }, // Status
+    },
+  });
+
+  doc.save("Products.pdf");
+};
 
   return (
     <Sidebar>

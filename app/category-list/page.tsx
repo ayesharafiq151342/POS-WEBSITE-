@@ -173,45 +173,78 @@ export default function Product() {
   const exportToExcel = (list: Product[]) => {
     const worksheet = XLSX.utils.json_to_sheet(list);
     const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Products");
+    XLSX.utils.book_append_sheet(workbook, worksheet, "category List");
 
     const excelBuffer = XLSX.write(workbook, { bookType: "xlsx", type: "array" });
     const data = new Blob([excelBuffer], {
       type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
     });
-    saveAs(data, "Products_List.xlsx");
+    saveAs(data, "category_list .xlsx");
   };
 
   // 🔹 Export to PDF
-  const exportToPDF = (list: Product[]) => {
-    const doc = new jsPDF();
-    doc.text("Product List", 14, 10);
+const exportToPDF = (list: Product[]) => {
+  const doc = new jsPDF();
 
-    const tableColumn = [
-      "SKU",
-      "Name",
-      "Category",
-      "Subcategory",
-      "Status",
-      "Manufactured Date",
-    ];
-    const tableRows = list.map((p) => [
-      p.sku,
-      p.name,
-      p.category,
-      p.subcategory,
-      p.status,
-      p.manufacturedDate,
-    ]);
+  // Title
+  doc.setFontSize(16);
+  doc.setTextColor(40);
+  doc.text("Category List", 14, 12);
 
-    autoTable(doc, {
-      head: [tableColumn],
-      body: tableRows,
-      startY: 20,
-    });
+  const tableColumn = [
+    "SKU",
+    "Name",
+    "Category",
+    "Subcategory",
+    "Status",
+    "Manufactured Date",
+  ];
 
-    doc.save("Products_List.pdf");
-  };
+  const tableRows = list.map((p) => [
+    p.sku,
+    p.name,
+    p.category,
+    p.subcategory,
+    p.status,
+    p.manufacturedDate,
+  ]);
+
+  autoTable(doc, {
+    startY: 20,
+    head: [tableColumn],
+    body: tableRows,
+    theme: "grid",
+
+    // Header styling
+    headStyles: {
+        fillColor: [30, 138, 138], // green (RGB)
+
+      textColor: 255,
+      fontStyle: "bold",
+      halign: "center",
+    },
+
+    // Body styling
+    styles: {
+      fontSize: 10,
+      cellPadding: 3,
+    },
+
+    // Alternate row shading
+    alternateRowStyles: {
+      fillColor: [245, 245, 245], // Light gray
+    },
+
+    columnStyles: {
+      0: { halign: "center" }, // SKU
+      4: { halign: "center" }, // Status
+      5: { halign: "center" }, // Manufactured Date
+    },
+  });
+
+  doc.save("category_list.pdf");
+};
+
 
   // 🔹 Lock scroll when modal is open
   useEffect(() => {
@@ -234,10 +267,16 @@ export default function Product() {
       {/* Actions */}
       <div className="flex flex-col md:flex-row gap-4 mb-6">
         <div className="w-full md:w-1/2">
-          <h2 className="font-bold text-lg">Product List</h2>
-          <h3 className="text-sm text-gray-600">Manage Your Products</h3>
+          <h2 className="font-bold text-lg">Category List</h2>
+          <h3 className="text-sm text-gray-600">Manage Your Category Prod</h3>
         </div>
-
+ <input
+        type="text"
+        placeholder="Search..."
+        value={searchQuery}
+        onChange={(e) => setSearchQuery(e.target.value)}
+        className="w-full border rounded-lg p-2 mb-4"
+      />
         <div className="w-full md:w-1/2 flex justify-end items-center gap-3">
           <button
             onClick={() => exportToExcel(filteredProducts)}

@@ -4,13 +4,14 @@ import { useSearchParams } from "next/navigation";
 import Sidebar from "../components/sidebar/page";
 import { Pencil, Trash } from "lucide-react";
 import TestPopup from "./testpop";
- // child import
+// child import
 
- import ImageUpload , {ImageUploadData } from "./imageupload";
-import WarrantySectionWithLabels ,{Warranty} from "./Custom_Fields";
+import ImageUpload, { ImageUploadData } from "./imageupload";
+import WarrantySectionWithLabels, { Warranty } from "./Custom_Fields";
+import DynamicSelect from "./DynamicSelect";
 export default function CreateProduct() {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
- 
+
   const [newItem, setNewItem] = useState("");
   const [productName, setProductName] = useState("");
   const [barcode, setBarcode] = useState("");
@@ -36,15 +37,9 @@ export default function CreateProduct() {
   };
   const [options, setOptions] = useState<string[]>(["Computer", "Electronics"]);
   const [showPopup, setShowPopup] = useState(false);
-  const [store, setStore] = useState("");
-  const [warehouse, setWarehouse] = useState("");
+
   const [sku, setSku] = useState("");
-  const [sellingType, setSellingType] = useState("");
-  const [category, setCategory] = useState("");
-  const [subcategory, setSubcategory] = useState("");
-  const [brand, setBrand] = useState("");
-  const [unit, setUnit] = useState("");
-  const [barcodeSymbology, setBarcodeSymbology] = useState("Code 128");
+
   const [description, setDescription] = useState("");
   const [productType, setProductType] = useState("");
   const [quantity, setQuantity] = useState(0);
@@ -56,11 +51,40 @@ export default function CreateProduct() {
   const [quantityAlert, setQuantityAlert] = useState(0);
   const [manufactureDate, setManufactureDate] = useState("");
   const [expiryDate, setExpiryDate] = useState("");
+  const [units, setUnits] = useState(["KG", "Pcs"]);
 
   const searchParams = useSearchParams();
   const editSku = searchParams.get('edit');
+  const [optionss, setOptionss] = useState([
+    "KG",
+    "Pcs",
+    "L",
+    "dz",
+    "bx",
+    "piece",
+  ]);
+  const [newOption, setNewOption] = useState("");
 
+
+  const [unit, setUnit] = useState("");
+  const [category, setCategory] = useState("");
+  const [brand, setBrand] = useState("");
+  const [sellingType, setSellingType] = useState("");
+  const [subcategory, setSubcategory] = useState("");
+  const [store, setStore] = useState("");
+  const [warehouse, setWarehouse] = useState("");
+  const [barcodeSymbology, setBarcodeSymbology] = useState("");
   // Load product data for editing
+  // Options arrays
+  const [unitOptions, setUnitOptions] = useState(["Kg", "Litre", "Piece"]);
+  const [categoryOptions, setCategoryOptions] = useState(["Electronics", "Clothing"]);
+  const [brandOptions, setBrandOptions] = useState(["Lenovo", "Nike", "Apple", "Amazon"]);
+  const [sellingTypeOptions, setSellingTypeOptions] = useState(["Online", "POS"]);
+  const [subcategoryOptions, setSubcategoryOptions] = useState(["Laptop", "Desktop", "Sneakers", "Formals", "Wearables"]);
+  const [storeOptions, setStoreOptions] = useState(["Electro Mart", "Quantum Gadgets", "Gadget World"]);
+  const [warehouseOptions, setWarehouseOptions] = useState(["Quaint Warehouse", "Cool Warehouse", "Nova Storage Hub"]);
+  const [barcodeSymbologyOptions, setBarcodeSymbologyOptions] = useState(["Code 128", "Code 39", "UPC-A", "EAN-8", "UPC-E"]);
+
   useEffect(() => {
     if (editSku) {
       fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/products/${editSku}`)
@@ -123,7 +147,7 @@ export default function CreateProduct() {
     </svg>
   );
 
-  
+
   const editVariantRow = (index: number) => {
     // Logic to edit variant row can be implemented here
     alert(`Edit functionality for row ${index + 1} is not implemented yet.`);
@@ -161,137 +185,137 @@ export default function CreateProduct() {
     setVariants(newVariants);
   };
 
- const handleSubmit = async () => {
-  setSubmit(true);
-  console.log("Submitting warranty data:", warrantyData);
+  const handleSubmit = async () => {
+    setSubmit(true);
+    console.log("Submitting warranty data:", warrantyData);
 
-  if (!warrantyData) {
-    alert("Please fill warranty data first!");
-    return;
-  }
-
-  let imageUrls: string[] = [];
-
-  // 1️⃣ Upload images first
-  if (images.length > 0) {
-    const formData = new FormData();
-    images.forEach((img) => formData.append("images", img));
-
-    try {
-      const resImages = await fetch(`http://localhost:5000/upload`, {
-        method: "POST",
-        body: formData,
-      });
-      if (!resImages.ok) throw new Error("Upload failed");
-      const data = await resImages.json();
-      imageUrls = data.urls || [];
-      alert("Images uploaded successfully!");
-      setImages([]);
-    } catch (err) {
-      console.error(err);
-      alert("Upload error!");
+    if (!warrantyData) {
+      alert("Please fill warranty data first!");
       return;
     }
-  }
 
-  // 2️⃣ Save warranty data
-  try {
-    const resWarranty = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/warranty`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(warrantyData),
-    });
-    if (!resWarranty.ok) throw new Error("Failed to save warranty data");
-    alert("Warranty data saved successfully!");
-  } catch (err) {
-    console.error(err);
-    alert("Error saving warranty!");
-    return;
-  }
+    let imageUrls: string[] = [];
 
-  // 3️⃣ Collect product data
-  const productData = {
-    productName,
-    slug,
-    barcode,
-    store,
-    warehouse,
-    sku,
-    sellingType,
-    category,
-    subcategory,
-    brand,
-    unit,
-    barcodeSymbology,
-    description,
-    productType,
-    quantity,
-    price,
-    taxType,
-    tax,
-    discountType,
-    discountValue,
-    quantityAlert,
-    manufactureDate,
-    expiryDate,
-    images: imageUrls,
-    warranty: warrantyData,
-    mode,
-    variants: mode === 'multiple' ? variants : [],
-  };
+    // 1️⃣ Upload images first
+    if (images.length > 0) {
+      const formData = new FormData();
+      images.forEach((img) => formData.append("images", img));
 
-  // 4️⃣ Send to /api/products
-  try {
-    const method = editSku ? "PUT" : "POST";
-    const url = editSku ? `${process.env.NEXT_PUBLIC_BACKEND_URL}/products/${editSku}` : `${process.env.NEXT_PUBLIC_BACKEND_URL}/products`;
-    const resProduct = await fetch(url, {
-      method,
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(productData),
-    });
-    if (!resProduct.ok) throw new Error("Failed to save product");
-    alert(editSku ? "Product updated successfully!" : "Product saved successfully!");
-  } catch (err) {
-    console.error(err);
-    alert("Error saving product!");
-  }
-};useEffect(() => {
-  if (editSku) {
-    fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/products/${editSku}`)
-      .then((res) => res.json())
-      .then((product) => {
-        if (product) {
-          setProductName(product.productName || "");
-          setSlug(product.slug || "");
-          setBarcode(product.barcode || "");
-          setStore(product.store || "");
-          setWarehouse(product.warehouse || "");
-          setSku(product.sku || "");
-          setSellingType(product.sellingType || "");
-          setCategory(product.category || "");
-          setSubcategory(product.subcategory || "");
-          setBrand(product.brand || "");
-          setUnit(product.unit || "");
-          setBarcodeSymbology(product.barcodeSymbology || "Code 128");
-          setDescription(product.description || "");
-          setProductType(product.productType || "");
-          setQuantity(product.quantity || 0);
-          setPrice(product.price || 0);
-          setTaxType(product.taxType || "");
-          setTax(product.tax || 0);
-          setDiscountType(product.discountType || "");
-          setDiscountValue(product.discountValue || 0);
-          setQuantityAlert(product.quantityAlert || 0);
-          setManufactureDate(product.manufactureDate ? product.manufactureDate.split('T')[0] : "");
-          setExpiryDate(product.expiryDate ? product.expiryDate.split('T')[0] : "");
-        }
-      })
-      .catch((err) => console.error("Error loading product for edit:", err));
-  }
-}, [editSku]);
+      try {
+        const resImages = await fetch(`http://localhost:5000/upload`, {
+          method: "POST",
+          body: formData,
+        });
+        if (!resImages.ok) throw new Error("Upload failed");
+        const data = await resImages.json();
+        imageUrls = data.urls || [];
+        alert("Images uploaded successfully!");
+        setImages([]);
+      } catch (err) {
+        console.error(err);
+        alert("Upload error!");
+        return;
+      }
+    }
+
+    // 2️⃣ Save warranty data
+    try {
+      const resWarranty = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/warranty`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(warrantyData),
+      });
+      if (!resWarranty.ok) throw new Error("Failed to save warranty data");
+      alert("Warranty data saved successfully!");
+    } catch (err) {
+      console.error(err);
+      alert("Error saving warranty!");
+      return;
+    }
+
+    // 3️⃣ Collect product data
+    const productData = {
+      productName,
+      slug,
+      barcode,
+      store,
+      warehouse,
+      sku,
+      sellingType,
+      category,
+      subcategory,
+      brand,
+      unit,
+      barcodeSymbology,
+      description,
+      productType,
+      quantity,
+      price,
+      taxType,
+      tax,
+      discountType,
+      discountValue,
+      quantityAlert,
+      manufactureDate,
+      expiryDate,
+      images: imageUrls,
+      warranty: warrantyData,
+      mode,
+      variants: mode === 'multiple' ? variants : [],
+    };
+
+    // 4️⃣ Send to /api/products
+    try {
+      const method = editSku ? "PUT" : "POST";
+      const url = editSku ? `${process.env.NEXT_PUBLIC_BACKEND_URL}/products/${editSku}` : `${process.env.NEXT_PUBLIC_BACKEND_URL}/products`;
+      const resProduct = await fetch(url, {
+        method,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(productData),
+      });
+      if (!resProduct.ok) throw new Error("Failed to save product");
+      alert(editSku ? "Product updated successfully!" : "Product saved successfully!");
+    } catch (err) {
+      console.error(err);
+      alert("Error saving product!");
+    }
+  }; useEffect(() => {
+    if (editSku) {
+      fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/products/${editSku}`)
+        .then((res) => res.json())
+        .then((product) => {
+          if (product) {
+            setProductName(product.productName || "");
+            setSlug(product.slug || "");
+            setBarcode(product.barcode || "");
+            setStore(product.store || "");
+            setWarehouse(product.warehouse || "");
+            setSku(product.sku || "");
+            setSellingType(product.sellingType || "");
+            setCategory(product.category || "");
+            setSubcategory(product.subcategory || "");
+            setBrand(product.brand || "");
+            setUnit(product.unit || "");
+            setBarcodeSymbology(product.barcodeSymbology || "Code 128");
+            setDescription(product.description || "");
+            setProductType(product.productType || "");
+            setQuantity(product.quantity || 0);
+            setPrice(product.price || 0);
+            setTaxType(product.taxType || "");
+            setTax(product.tax || 0);
+            setDiscountType(product.discountType || "");
+            setDiscountValue(product.discountValue || 0);
+            setQuantityAlert(product.quantityAlert || 0);
+            setManufactureDate(product.manufactureDate ? product.manufactureDate.split('T')[0] : "");
+            setExpiryDate(product.expiryDate ? product.expiryDate.split('T')[0] : "");
+          }
+        })
+        .catch((err) => console.error("Error loading product for edit:", err));
+    }
+  }, [editSku]);
 
 
-    const handleCancel = () => {
+  const handleCancel = () => {
     setCancel(true);
     console.log("Cancel clicked"); // state update async, ye just confirmation
   };
@@ -307,32 +331,7 @@ export default function CreateProduct() {
           }}
         >
           {/* Store & Warehouse */}
-          <div className="flex gap-3">
-            <div className="flex-1">
-              <label className="block font-medium mb-1">Select Store</label>
-              <select value={store} onChange={(e)=>setStore(e.target.value)} className="w-full border  border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-purple-500" required>
-                <option value="">Choose Store</option>
-                <option>Electro Mart</option>
-                <option>Quantum Gadgets</option>
-                <option>Gadget World</option>
-                <option>Elite Retail</option>
-                <option>Prime Mart</option>
-                <option>NeoTech Store</option>
-              </select>
-            </div>
-            <div className="flex-1">
-              <label className="block font-medium mb-1">Warehouse</label>
-              <select value={warehouse} onChange={(e)=>setWarehouse(e.target.value)} className="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-purple-500" required>
-                <option value="">Choose Warehouse</option>
-                <option>Quaint Warehouse</option>
-                <option>Traditional Warehouse</option>
-                <option>Cool Warehouse</option>
-                <option>Nova Storage Hub</option>
-                <option>Retail Supply Hub</option>
-                <option>EdgeWare Solutions</option>
-              </select>
-            </div>
-          </div>
+
 
           {/* Product Name & Slug */}
           <div className="flex gap-3">
@@ -366,99 +365,14 @@ export default function CreateProduct() {
               <input
                 type="text"
                 value={sku}
-                onChange={(e)=>setSku(e.target.value)}
+                onChange={(e) => setSku(e.target.value)}
                 className="w-full border rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
                 placeholder="Enter SKU"
                 required
               />
             </div>
             <div className="flex-1">
-              <label className="block font-medium mb-1">Selling Type</label>
-              <select value={sellingType} onChange={(e)=>setSellingType(e.target.value)} className="w-full border  border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-purple-500" required>
-                <option value="" className="">Select</option>
-                <option>Online</option>
-                <option>POS</option>
-              </select>
-            </div>
-          </div>
-
-          {/* Category & Subcategory */}
-          {/* Category & Subcategory */}
-          <div className="flex gap-3">
-            <div className="flex-1">
-              <div className="flex justify-between items-center mb-1">
-                <label className="block font-medium">Category</label>
-                <button
-                  type="button"
-                  onClick={() => setShowPopup(true)}
-                  className="bg-[var(--accent)] text-white px-2 py-1 rounded-md text-sm hover:bg-[var(--hover)] transition"
-                >
-                  + Add New
-                </button>
-              </div>
-              <select value={category} onChange={(e)=>setCategory(e.target.value)} className="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-purple-500" required>
-                <option value="">Select Category</option>
-                {options.map((opt, i) => (
-                  <option key={i} value={opt.toLowerCase()}>
-                    {opt}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div className="flex-1">
-              <label className="block font-medium mb-1">Subcategory</label>
-              <select value={subcategory} onChange={(e)=>setSubcategory(e.target.value)} className="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-purple-500" required>
-                <option value="" >Select Subcategory</option>
-                <option>Laptop</option>
-                <option>Desktop</option>
-                <option>Sneakers</option>
-                <option>Formals</option>
-                <option>Wearables</option>
-              </select>
-            </div>
-          </div>
-
-
-          {/* Brand & Unit */}
-          <div className="flex gap-3">
-            <div className="flex-1">
-              <label className="block font-medium mb-1">Brand</label>
-              <select value={brand} onChange={(e)=>setBrand(e.target.value)} className="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-purple-500" required>
-                <option value="">Select Brand</option>
-                <option>Lenovo</option>
-                <option>Nike</option>
-                <option>Apple</option>
-                <option>Amazon</option>
-              </select>
-            </div>
-            <div className="flex-1">
-              <label className="block font-medium mb-1">Unit</label>
-              <select value={unit} onChange={(e)=>setUnit(e.target.value)} className="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-purple-500" required>
-                <option value="">Select Unit</option>
-                <option>KG</option>
-                <option>Pcs</option>
-                <option>L</option>
-                <option>dz</option>
-                <option>bx</option>
-                <option>piece</option>
-
-              </select>
-            </div>
-          </div>
-
-          {/* Barcode */}
-          <div className="flex gap-3">
-            <div className="flex-1">
-              <label className="block font-medium mb-1">Barcode Symbology</label>
-              <select value={barcodeSymbology} onChange={(e)=>setBarcodeSymbology(e.target.value)} className="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-purple-500" required>
-                <option>Code 128</option>
-                <option>Code 39</option>
-                <option>UPC-A</option>
-                <option>EAN-8</option>
-                <option>UPC-E</option>
-              </select>
-            </div>
-            <div className="flex-1">
+              {/* Selling Type */}
               <label className="block font-medium mb-1">Barcode</label>
               <input
                 type="text"
@@ -470,12 +384,104 @@ export default function CreateProduct() {
             </div>
           </div>
 
+          {/* Category & Subcategory */}
+          {/* Category & Subcategory */}
+          <div className="flex gap-3">
+            <div className="flex-1">
+             {/* Category */}
+      <DynamicSelect
+        label="Category"
+        value={category}
+        onChange={setCategory}
+        options={categoryOptions}
+        onAddOption={(val) => setCategoryOptions([...categoryOptions, val])}
+      />
+
+            </div>
+            <div className="flex-1">
+              <DynamicSelect
+                label="Subcategory"
+                value={subcategory}
+                onChange={setSubcategory}
+                options={subcategoryOptions}
+                onAddOption={(val) => setSubcategoryOptions([...subcategoryOptions, val])}
+              />
+
+            </div>
+          </div>
+          <div className="flex gap-3">
+            <div className="flex-1">
+              <DynamicSelect
+                label="Store"
+                value={store}
+                onChange={setStore}
+                options={storeOptions}
+                onAddOption={(val) => setStoreOptions([...storeOptions, val])}
+              />
+            </div>
+            <div className="flex-1">
+              <DynamicSelect
+                label="Warehouse"
+                value={warehouse}
+                onChange={setWarehouse}
+                options={warehouseOptions}
+                onAddOption={(val) => setWarehouseOptions([...warehouseOptions, val])}
+              />
+            </div>
+          </div>
+
+          {/* Brand & Unit */}
+          <div className="flex gap-3">
+            <div className="flex-1">
+              {/* Brand Select */}
+              <DynamicSelect
+                label="Brand"
+                value={brand}
+                onChange={setBrand}
+                options={brandOptions}
+                onAddOption={(val) => setBrandOptions([...brandOptions, val])}
+              />
+            </div>
+            <div className="flex-1">
+
+              <DynamicSelect
+                label="Unit"
+                value={unit}
+                onChange={setUnit}
+                options={units}
+                onAddOption={(newUnit) => setUnits([...units, newUnit])}
+              />      </div>
+          </div>
+
+          {/* Barcode */}
+          <div className="flex gap-3">
+            <div className="flex-1">
+              <DynamicSelect
+                label="Barcode Symbology"
+                value={barcodeSymbology}
+                onChange={setBarcodeSymbology}
+                options={barcodeSymbologyOptions}
+                onAddOption={(val) => setBarcodeSymbologyOptions([...barcodeSymbologyOptions, val])}
+              />
+
+            </div>
+            <div className="flex-1">
+              <DynamicSelect
+                label="Selling Type"
+                value={sellingType}
+                onChange={setSellingType}
+                options={sellingTypeOptions}
+                onAddOption={(val) => setSellingTypeOptions([...sellingTypeOptions, val])}
+              />
+            </div>
+          </div>
+
           {/* Description */}
           <div>
             <label className="block font-medium mb-1">Description</label>
             <textarea
               value={description}
-              onChange={(e)=>setDescription(e.target.value)}
+              onChange={(e) => setDescription(e.target.value)}
               className="w-full border rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
               placeholder="Enter product description"
               required
@@ -504,11 +510,11 @@ export default function CreateProduct() {
             </div>
           </div>
 
-       
+
 
           {/* Add Category Popup */}
           {showPopup && (
-            <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center">
+            <div className="fixed inset-0 bg-black/60 bg-opacity-40 flex items-center justify-center">
               <div className="bg-white p-5 rounded-md shadow-md w-80">
                 <h2 className="text-lg font-bold mb-3">Add New Category</h2>
                 <input
@@ -579,7 +585,7 @@ export default function CreateProduct() {
               <div className="flex flex-wrap gap-3">
                 <div className="flex-1">
                   <label className="block font-medium mb-1">Product Type*</label>
-                  <select value={productType} onChange={(e)=>setProductType(e.target.value)} className="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                  <select value={productType} onChange={(e) => setProductType(e.target.value)} className="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
                     <option value="">Select Product Type</option>
                     <option>Physical</option>
                     <option>Digital</option>
@@ -593,7 +599,7 @@ export default function CreateProduct() {
                     type="number"
                     min={0}
                     value={quantity}
-                    onChange={(e)=>setQuantity(Number(e.target.value))}
+                    onChange={(e) => setQuantity(Number(e.target.value))}
                     className="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
@@ -608,14 +614,14 @@ export default function CreateProduct() {
                     min={0}
                     step={0.01}
                     value={price}
-                    onChange={(e)=>setPrice(Number(e.target.value))}
+                    onChange={(e) => setPrice(Number(e.target.value))}
                     className="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
 
                 <div className="flex-1">
                   <label className="block font-medium mb-1">Tax Type*</label>
-                  <select value={taxType} onChange={(e)=>setTaxType(e.target.value)} className="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                  <select value={taxType} onChange={(e) => setTaxType(e.target.value)} className="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500" required>
                     <option value="">Select Tax Type</option>
                     <option>Percentage</option>
                     <option>Fixed</option>
@@ -629,7 +635,7 @@ export default function CreateProduct() {
                     min={0}
                     step={0.01}
                     value={tax}
-                    onChange={(e)=>setTax(Number(e.target.value))}
+                    onChange={(e) => setTax(Number(e.target.value))}
                     placeholder="Enter Tax"
                     className="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                     required
@@ -641,7 +647,7 @@ export default function CreateProduct() {
               <div className="flex flex-wrap gap-3 mt-3">
                 <div className="flex-1">
                   <label className="block font-medium mb-1">Discount Type*</label>
-                  <select value={discountType} onChange={(e)=>setDiscountType(e.target.value)} className="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                  <select value={discountType} onChange={(e) => setDiscountType(e.target.value)} className="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500" required>
                     <option value="">Select Discount Type</option>
                     <option>Percentage</option>
                     <option>Fixed</option>
@@ -655,7 +661,7 @@ export default function CreateProduct() {
                     min={0}
                     step={0.01}
                     value={discountValue}
-                    onChange={(e)=>setDiscountValue(Number(e.target.value))}
+                    onChange={(e) => setDiscountValue(Number(e.target.value))}
                     placeholder="Enter Discount"
                     className="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                     required
@@ -668,7 +674,7 @@ export default function CreateProduct() {
                     type="number"
                     min={0}
                     value={quantityAlert}
-                    onChange={(e)=>setQuantityAlert(Number(e.target.value))}
+                    onChange={(e) => setQuantityAlert(Number(e.target.value))}
                     placeholder="Enter Quantity Alert"
                     className="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                     required
@@ -795,12 +801,12 @@ export default function CreateProduct() {
     {
       title: "Images",
       content: (<>
-<ImageUpload onChange={setImages} images={images} />
-  </>),
-    },    {
+        <ImageUpload onChange={setImages} images={images} />
+      </>),
+    }, {
       title: "Custom Fields",
-      content: 
-  <WarrantySectionWithLabels onChange={setWarrantyData} />
+      content:
+        <WarrantySectionWithLabels onChange={setWarrantyData} />
     }
   ];
 
@@ -825,20 +831,20 @@ export default function CreateProduct() {
           </div>
         ))}
       </div>
-        <button
-      type="button"
-      onClick={handleSubmit}
-      className="bg-[var(--accent)] hover:bg-[var(--hover)] text-white rounded w-32 h-10 mt-5 transition-colors"
-    >
-      {editSku ? 'Update' : 'Submit'}
-    </button>
-          <button
-      type="button"
-      onClick={handleCancel}
-      className="bg-[var(--danger)] hover:bg-[var(--hover_danger)] text-white rounded w-32 h-10 mt-5 ml-4 "
-    >
-      Cancel
-    </button>
+      <button
+        type="button"
+        onClick={handleSubmit}
+        className="bg-[var(--accent)] hover:bg-[var(--hover)] text-white rounded w-32 h-10 mt-5 transition-colors"
+      >
+        {editSku ? 'Update' : 'Submit'}
+      </button>
+      <button
+        type="button"
+        onClick={handleCancel}
+        className="bg-[var(--danger)] hover:bg-[var(--hover_danger)] text-white rounded w-32 h-10 mt-5 ml-4 "
+      >
+        Cancel
+      </button>
 
     </Sidebar>
   );

@@ -110,16 +110,55 @@ export default function Product() {
   };
 
   // 🔹 Export PDF
-  const exportToPDF = (products: Product[]) => {
-    const doc = new jsPDF();
-    doc.text("Product List", 14, 10);
+const exportToPDF = (products: Product[]) => {
+  const doc = new jsPDF();
 
-    const tableColumn = ["SKU", "Name", "Category", "Price", "Quantity"];
-    const tableRows = products.map(p => [p.sku, p.name, p.category, p.price, p.qty]);
+  // Title
+  doc.setFontSize(16);
+  doc.text("Product List", 14, 12);
 
-    autoTable(doc, { head: [tableColumn], body: tableRows, startY: 20 });
-    doc.save("Product_List.pdf");
-  };
+  const tableColumn = ["SKU", "Name", "Category", "Price", "Quantity"];
+  const tableRows = products.map((p) => [
+    p.sku,
+    p.name,
+    p.category,
+    p.price,
+    p.qty,
+  ]);
+
+  autoTable(doc, {
+    startY: 20,
+    head: [tableColumn],
+    body: tableRows,
+
+    theme: "grid",
+
+    headStyles: {
+       fillColor: [30, 138, 138], // green (RGB)
+
+      textColor: 255,
+      fontStyle: "bold",
+      halign: "center",
+    },
+
+    styles: {
+      fontSize: 9,
+      cellPadding: 3,
+    },
+
+    alternateRowStyles: {
+      fillColor: [245, 245, 245], // light gray alternate rows
+    },
+
+    columnStyles: {
+      3: { halign: "right" }, // Price right align
+      4: { halign: "center" }, // Quantity center
+    },
+  });
+
+  doc.save("Product_List.pdf");
+};
+
 
   return (
     <Sidebar>

@@ -27,7 +27,7 @@ export default function Sidebar({ children }) {
           {/* Logo */}
           <div className="flex items-center space-x-2">
             <Image
-              src="/images/logoo.png"
+              src="/images/greenlogoi.png"
               alt="POS Logo"
               width={50}
               height={50}
